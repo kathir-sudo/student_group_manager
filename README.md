@@ -1,6 +1,6 @@
 # Student Group Manager
 
-A modern and interactive web application for managing students and their group assignments. Built using only HTML, CSS, and JavaScript — no backend required!
+A modern and interactive web application for managing students and their group. Built using only HTML, CSS, and JavaScript — no backend required!
 
 ## 🌟 Features
 
