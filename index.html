@@ -496,7 +496,56 @@ a.href = url; a.download = filename; document.body.appendChild(a);
 // --- Initial Load ---
 function initializeApp() {
     if (!localStorage.getItem("students")) {
-      allStudents = [{ roll: "101", name: "Alice" }, { roll: "102", name: "Bob" }, { roll: "103", name: "Charlie" }];
+      allStudents = [
+          { roll: "222307663", name: "Abdul Kalam B" },
+{ roll: "222307664", name: "Ajay D" },
+{ roll: "222307666", name: "Akash Kumar R" },
+{ roll: "222307671", name: "Arunachalam E" },
+{ roll: "222307672", name: "Babu Esvaran C" },
+{ roll: "222307676", name: "Daniel Raj R" },
+{ roll: "222307680", name: "Dhanush V" },
+{ roll: "222307681", name: "Esakkimuthu Sanjay E" },
+{ roll: "222307682", name: "Gokul Kannan T" },
+{ roll: "222307685", name: "Hariharan K" },
+{ roll: "222307686", name: "Ignatious Daniel Raj D" },
+{ roll: "222307688", name: "Jayan A" },
+{ roll: "222307689", name: "Jayson R S" },
+{ roll: "222307693", name: "Kathirvel E" },
+{ roll: "222307694", name: "Kishore K" },
+{ roll: "222307695", name: "Kishore Kumar S" },
+{ roll: "222307697", name: "Manikandan D" },
+{ roll: "222307698", name: "Manimaran K" },
+{ roll: "222307700", name: "Mohamed Irfan J" },
+{ roll: "222307705", name: "Naresh P" },
+{ roll: "222307706", name: "Neelamegan K" },
+{ roll: "222307707", name: "Nitheesh Kanna P" },
+{ roll: "222307708", name: "Palani Bharathi J" },
+{ roll: "222307711", name: "Rakshith K" },
+{ roll: "222307712", name: "Roshan A" },
+{ roll: "222307758", name: "Sai Mukesh B" },
+{ roll: "222307714", name: "Sameer Ahmed H" },
+{ roll: "222307715", name: "Sanjay Raj S" },
+{ roll: "222307716", name: "Sanjay S" },
+{ roll: "222307720", name: "Shaik Mahaboob Basha" },
+{ roll: "222307721", name: "Sivanesan S" },
+{ roll: "222307722", name: "Sri Harish A" },
+{ roll: "222307724", name: "Surendhar S" },
+{ roll: "222307727", name: "Venkatesan K" },
+{ roll: "222307728", name: "Vignesh S" },
+{ roll: "222307732", name: "Anandhi E" },
+{ roll: "222307733", name: "Angel Christina J" },
+{ roll: "222307734", name: "Anusiya E" },
+{ roll: "222307735", name: "Arthi D" },
+{ roll: "222307737", name: "Deepshika M A" },
+{ roll: "222307740", name: "Indhumathi D" },
+{ roll: "222307741", name: "Jananee R" },
+{ roll: "222307744", name: "Lingaisha M" },
+{ roll: "222307750", name: "Rithika V" },
+{ roll: "222307752", name: "Saroja M" },
+{ roll: "222307754", name: "Sivaranjini V" },
+{ roll: "222307756", name: "Vijiayalakshmi S" },
+{ roll: "222307757", name: "Yamini D" }
+ ];
       allGroups = {"Project Alpha": [{ roll: "101", name: "Alice", notes: "Leader" }]};
       saveToStorage();
     }
