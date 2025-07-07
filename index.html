@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Group Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  
+  <style>
+    :root {
+      --primary-color: #6a11cb;
+      --secondary-color: #2575fc;
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --text-color: #2c3e50;
+      --border-color: #e0e0e0;
+      --danger-color: #e74c3c;
+      --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      --border-radius: 12px;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .app-wrapper { max-width: 1000px; margin: 0 auto; }
+
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab-btn {
+      padding: 12px 25px; border-radius: var(--border-radius); border: none;
+      cursor: pointer; background: rgba(255, 255, 255, 0.5); font-weight: 600;
+      font-size: 1rem; transition: all 0.3s ease;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: white; color: var(--primary-color); transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .tab-btn i { margin-right: 8px; }
+
+    .container {
+      display: none; background: var(--card-bg); backdrop-filter: blur(10px);
+      border-radius: var(--border-radius); box-shadow: var(--shadow);
+      padding: 25px; border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .container.active { display: block; }
+    .container h2 { margin-bottom: 20px; }
+
+    input[type="text"], select {
+      width: 100%; padding: 12px; margin-bottom: 15px;
+      border: 1px solid var(--border-color); border-radius: 8px;
+      font-family: 'Poppins', sans-serif; font-size: 1rem;
+    }
+
+    button {
+      padding: 10px 15px; background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      color: white; border: none; border-radius: 8px; cursor: pointer;
+      font-weight: 500; font-family: 'Poppins', sans-serif;
+      transition: all 0.2s ease-in-out; display: inline-flex; align-items: center; gap: 8px;
+    }
+    button:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+    button.danger { background: var(--danger-color); }
+    button.secondary { background: #7f8c8d; }
+    button.export { background: #16a085; }
+    
+    .action-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; }
+    .flex-space { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+
+    .list-item, .group-member {
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border-color); padding: 12px 5px; gap: 15px;
+    }
+    .list-item:hover, .group-member:hover { background-color: rgba(106, 17, 203, 0.05); border-radius: 8px; }
+    .student-info { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
+    .student-info .s-no { font-weight: 600; color: var(--primary-color); min-width: 25px; }
+    
+    /* UPDATED: Compact icon buttons for actions */
+    .list-item-actions { display: flex; gap: 8px; }
+    .list-item-actions button {
+        padding: 8px; font-size: 0.9rem; width: 36px; height: 36px;
+        justify-content: center; gap: 0;
+    }
+    .list-item-actions button .fas { margin: 0; }
+    .list-item-actions button span { display: none; } /* Hide text by default */
+
+    .group-card {
+      border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 20px;
+      margin-top: 20px; background: #fdfdfd; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .group-card-header { position: relative; }
+    .group-card-header strong { font-size: 1.2rem; }
+    .group-body { padding-top: 10px; border-top: 1px solid #eee; transition: all 0.4s ease-in-out; max-height: 1000px; overflow: hidden; }
+    .groupSelectedCount { font-weight: 500; background: #e9ecef; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; margin-left: 15px; }
+
+    /* NEW: Kebab menu and dropdown for group actions */
+    .group-actions-btn { background: none; color: var(--text-color); box-shadow: none; padding: 5px 10px; }
+    .group-actions-dropdown {
+        display: none; position: absolute; right: 0; top: 40px;
+        background: white; border-radius: 8px; box-shadow: var(--shadow);
+        z-index: 10; overflow: hidden; min-width: 180px;
+    }
+    .group-actions-dropdown.show { display: block; }
+    .group-actions-dropdown a {
+        display: flex; align-items: center; gap: 10px; padding: 12px 15px;
+        color: var(--text-color); text-decoration: none; font-size: 0.95rem;
+    }
+    .group-actions-dropdown a:hover { background-color: #f0f0f8; }
+    .group-actions-dropdown a.danger-text { color: var(--danger-color); }
+    .group-actions-dropdown a .fas { width: 20px; text-align: center; }
+
+    .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+    .modal-content { background: white; padding: 30px; border-radius: var(--border-radius); width: 90%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); position: relative; }
+    .close-btn { position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 28px; color: #999; }
+    
+    #selectedCount { font-weight: 500; background: #e9ecef; padding: 5px 12px; border-radius: 20px; }
+    .hidden { max-height: 0; padding-top: 0; border-top: none; opacity: 0; visibility: hidden; }
+
+    @media (max-width: 768px) {
+        body { padding: 10px; }
+        .container { padding: 15px; }
+        .tab-btn { padding: 10px 15px; font-size: 0.9rem; }
+        .action-bar { margin-bottom: 15px; }
+        /* Show text on main action buttons for clarity on mobile */
+        .action-bar button span { display: inline; }
+        .action-bar button { flex-grow: 1; }
+        .action-bar:has(#groupSelect) { flex-direction: column; align-items: stretch; }
+        .group-card { padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-wrapper">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('students', this)"><i class="fas fa-users"></i><span>Students</span></button>
+    <button class="tab-btn" onclick="showTab('groups', this)"><i class="fas fa-layer-group"></i><span>Groups</span></button>
+  </div>
+
+  <div id="students" class="container active">
+    <div class="flex-space" style="margin-bottom: 20px;">
+      <h2><i class="fas fa-user-graduate"></i> All Students</h2>
+    </div>
+    <input type="text" id="searchStudent" placeholder="Search by name or roll number...">
+    <div class="action-bar">
+        <button onclick="openStudentModal()"><i class="fas fa-user-plus"></i> Add Student</button>
+        <button onclick="selectAllStudents(true)" class="secondary"><i class="fas fa-check-square"></i> Select All</button>
+        <button onclick="selectAllStudents(false)" class="secondary"><i class="far fa-square"></i> Deselect All</button>
+    </div>
+    <div class="action-bar" style="background: #f0f0ff; padding: 15px; border-radius: 8px;">
+        <span id="selectedCount" style="width: 100%; text-align:center; margin-bottom: 10px;">Selected: 0</span>
+        <select id="groupSelect" style="margin: 0;"></select>
+        <button onclick="assignSelectedToGroup()"><i class="fas fa-user-check"></i> Assign to Group</button>
+        <button onclick="exportSelectedStudents()" class="export"><i class="fas fa-file-export"></i> Export Selected</button>
+    </div>
+    <div id="studentList"></div>
+  </div>
+
+  <div id="groups" class="container">
+     <div class="flex-space" style="margin-bottom: 20px;">
+        <h2><i class="fas fa-folder-open"></i> Manage Groups</h2>
+        <button onclick="toggleAllGroupBodies()" class="secondary"><i class="fas fa-eye"></i> Toggle All</button>
+     </div>
+     <div class="action-bar">
+        <input type="text" id="newGroupName" placeholder="New group name..." style="flex-grow: 1; margin: 0;">
+        <button onclick="createGroup()"><i class="fas fa-plus-circle"></i> Create</button>
+     </div>
+    <div id="groupListContainer"></div>
+  </div>
+
+  <div id="studentModal" class="modal">
+    <span class="close-btn" onclick="closeStudentModal()">×</span>
+    <div class="modal-content">
+      <h3 id="modalTitle">Add New Student</h3>
+      <input type="hidden" id="editingRoll">
+      <input type="text" id="studentRoll" placeholder="Roll No">
+      <input type="text" id="studentName" placeholder="Full Name">
+      <button onclick="saveStudent()" style="width: 100%; justify-content: center;"><i class="fas fa-save"></i> Save</button>
+    </div>
+  </div>
+
+<script>
+let allStudents = [];
+let allGroups = {};
+let selectedStudentRolls = new Set();
+
+// --- Data Persistence ---
+function saveToStorage() { localStorage.setItem("students", JSON.stringify(allStudents)); localStorage.setItem("groups", JSON.stringify(allGroups)); }
+function loadFromStorage() { allStudents = JSON.parse(localStorage.getItem("students") || "[]"); allGroups = JSON.parse(localStorage.getItem("groups") || "{}"); }
+
+// --- Render Functions ---
+function renderStudents() {
+  const query = document.getElementById("searchStudent").value.toLowerCase();
+  const filteredStudents = allStudents.filter(s => s.name.toLowerCase().includes(query) || s.roll.toLowerCase().includes(query));
+  const container = document.getElementById("studentList");
+  
+  if (filteredStudents.length === 0) {
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 20px;">No students found.</p>`;
+  } else {
+    // UPDATED: Buttons are icon-only with titles
+    container.innerHTML = filteredStudents.map((s, i) =>
+      `<div class="list-item">
+        <div class="student-info">
+          <span class="s-no">${i + 1}.</span>
+          <input type="checkbox" class="studentCheck" data-roll="${s.roll}" 
+                 onchange="handleStudentSelectionChange('${s.roll}', this.checked)"
+                 ${selectedStudentRolls.has(s.roll) ? 'checked' : ''}>
+          <div><strong>${s.roll}</strong> - ${s.name}</div>
+        </div>
+        <div class="list-item-actions">
+          <button onclick="editStudent('${s.roll}')" title="Edit Student"><i class="fas fa-pencil-alt"></i></button>
+          <button class="danger" onclick="deleteStudent('${s.roll}')" title="Delete Student"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>`
+    ).join('');
+  }
+  renderGroupSelectOptions();
+  updateSelectedCount();
+}
+
+function renderGroups() {
+  const list = document.getElementById("groupListContainer");
+  const groupKeys = Object.keys(allGroups);
+  
+  if(groupKeys.length === 0) {
+    list.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 20px;">No groups created yet.</p>`;
+    return;
+  }
+  
+  list.innerHTML = groupKeys.map(group => {
+    const members = allGroups[group];
+    const memberHTML = members.map((m, i) => `
+      <div class="group-member">
+        <div class="student-info">
+          <span class="s-no">${i + 1}.</span>
+          <div><strong>${m.roll}</strong> - ${m.name}</div>
+        </div>
+      </div>`).join('');
+      
+    // UPDATED: Group header uses kebab menu
+    return `
+      <div class="group-card">
+        <div class="group-card-header flex-space">
+          <div>
+            <strong>${group}</strong>
+            <span class="groupSelectedCount">Members: ${members.length}</span>
+          </div>
+          <div class="group-actions">
+            <button class="group-actions-btn" onclick="toggleGroupActionsDropdown(event, '${group}')">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="group-actions-dropdown" id="dropdown-${group}">
+              <a href="#" onclick="toggleGroup('${group}'); return false;"><i class="fas fa-eye"></i> Toggle Members</a>
+              <a href="#" onclick="exportGroup('${group}'); return false;"><i class="fas fa-download"></i> Export Group</a>
+              <a href="#" class="danger-text" onclick="deleteGroup('${group}'); return false;"><i class="fas fa-trash-alt"></i> Delete Group</a>
+            </div>
+          </div>
+        </div>
+        <div class="group-body" id="group-body-${group}">${memberHTML || '<em>No members in this group.</em>'}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderGroupSelectOptions() {
+  const select = document.getElementById("groupSelect");
+  select.innerHTML = `<option value="">Select a group...</option>` + Object.keys(allGroups).map(g => `<option value="${g}">${g}</option>`).join('');
+}
+
+// --- Student & Modal Management ---
+function openStudentModal(roll = '', name = '') { /* ... no changes ... */ }
+function closeStudentModal() { /* ... no changes ... */ }
+function saveStudent() {
+  const roll = document.getElementById('studentRoll').value.trim();
+  const name = document.getElementById('studentName').value.trim();
+  const editingRoll = document.getElementById('editingRoll').value;
+  if (!roll || !name) return alert("Please fill both fields.");
+  if (editingRoll) {
+    const student = allStudents.find(s => s.roll === editingRoll);
+    if(student) student.name = name;
+    Object.values(allGroups).forEach(g => {
+        const member = g.find(m => m.roll === editingRoll);
+        if(member) member.name = name;
+    });
+  } else {
+    if (allStudents.some(s => s.roll === roll)) return alert("Roll number exists!");
+    allStudents.push({ roll, name });
+    allStudents.sort((a,b) => a.roll.localeCompare(b.roll));
+  }
+  saveToStorage(); renderStudents(); renderGroups(); closeStudentModal();
+}
+function editStudent(roll) { /* ... no changes ... */ }
+function deleteStudent(roll) {
+  if (!confirm(`Delete student ${roll}?`)) return;
+  allStudents = allStudents.filter(s => s.roll !== roll);
+  selectedStudentRolls.delete(roll);
+  Object.values(allGroups).forEach(g => g = g.filter(m => m.roll !== roll));
+  saveToStorage(); renderStudents(); renderGroups();
+}
+
+document.getElementById("searchStudent").addEventListener("input", renderStudents);
+
+// --- Selection Management ---
+function handleStudentSelectionChange(roll, isChecked) {
+  if (isChecked) selectedStudentRolls.add(roll); else selectedStudentRolls.delete(roll);
+  updateSelectedCount();
+}
+function selectAllStudents(select) {
+  const visibleRolls = Array.from(document.querySelectorAll('#studentList .studentCheck'), cb => cb.dataset.roll);
+  if (select) visibleRolls.forEach(roll => selectedStudentRolls.add(roll));
+  else visibleRolls.forEach(roll => selectedStudentRolls.delete(roll));
+  renderStudents();
+}
+function updateSelectedCount() {
+  document.getElementById("selectedCount").textContent = `Selected: ${selectedStudentRolls.size}`;
+}
+function exportSelectedStudents() {
+  if (selectedStudentRolls.size === 0) return alert("No students selected.");
+  const text = Array.from(selectedStudentRolls).map(roll => {
+    const s = allStudents.find(s => s.roll === roll);
+    return s ? `${s.roll} - ${s.name}` : '';
+  }).join('\n');
+  downloadFile("selected_students.txt", text);
+}
+
+// --- Group Management ---
+function createGroup() {
+  const nameInput = document.getElementById("newGroupName");
+  if (!nameInput.value.trim()) return alert("Enter group name.");
+  if (allGroups[nameInput.value.trim()]) return alert("Group exists.");
+  allGroups[nameInput.value.trim()] = [];
+  saveToStorage(); renderGroups(); nameInput.value = "";
+}
+
+function assignSelectedToGroup() {
+  const groupName = document.getElementById("groupSelect").value;
+  if (!groupName) return alert("Please select a group.");
+  if (selectedStudentRolls.size === 0) return alert("No students selected.");
+  let assignedCount = 0;
+  selectedStudentRolls.forEach(roll => {
+    if (!allGroups[groupName].some(m => m.roll === roll)) {
+      const student = allStudents.find(s => s.roll === roll);
+      if (student) {
+        allGroups[groupName].push({ ...student });
+        assignedCount++;
+      }
+    }
+  });
+  if (assignedCount > 0) {
+    allGroups[groupName].sort((a,b) => a.roll.localeCompare(b.roll));
+    saveToStorage(); renderGroups();
+    alert(`${assignedCount} student(s) assigned to "${groupName}".`);
+  } else {
+    alert(`Selected student(s) already in "${groupName}".`);
+  }
+  selectedStudentRolls.clear();
+  renderStudents();
+}
+function deleteGroup(groupName) {
+  if (confirm(`Delete group "${groupName}"?`)) {
+    delete allGroups[groupName];
+    saveToStorage(); renderGroups();
+  }
+}
+function exportGroup(groupName) {
+  const members = allGroups[groupName];
+  if (!members || members.length === 0) return alert(`Group "${groupName}" is empty.`);
+  const text = members.map(m => `${m.roll} - ${m.name}`).join('\n');
+  downloadFile(`${groupName}_members.txt`, `Group: ${groupName}\n\n` + text);
+}
+
+// --- UI & Utility Functions ---
+function toggleGroup(groupName) { document.getElementById(`group-body-${groupName}`).classList.toggle("hidden"); }
+function toggleAllGroupBodies() {
+  const bodies = document.querySelectorAll('.group-body');
+  if (bodies.length === 0) return;
+  const shouldHide = !bodies[0].classList.contains('hidden');
+  bodies.forEach(body => body.classList.toggle('hidden', shouldHide));
+}
+function toggleGroupActionsDropdown(event, groupName) {
+  event.stopPropagation(); // Prevent window.onclick from closing it immediately
+  closeAllDropdowns(groupName); // Close others
+  document.getElementById(`dropdown-${groupName}`).classList.toggle('show');
+}
+function closeAllDropdowns(exceptGroup = null) {
+  document.querySelectorAll('.group-actions-dropdown').forEach(dropdown => {
+    if (!exceptGroup || dropdown.id !== `dropdown-${exceptGroup}`) {
+      dropdown.classList.remove('show');
+    }
+  });
+}
+// NEW: Global click listener to close dropdowns
+window.onclick = function(event) {
+  if (!event.target.matches('.group-actions-btn, .group-actions-btn *')) {
+    closeAllDropdowns();
+  }
+}
+function showTab(tabId, element) {
+  document.querySelectorAll(".container").forEach(c => c.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById(tabId).classList.add("active");
+  element.classList.add("active");
+}
+function downloadFile(filename, text) { /* ... no changes ... */ }
+
+// --- Initial Load ---
+function initializeApp() {
+  if (!localStorage.getItem("students")) {
+    allStudents = [{ roll: "101", name: "Alice" }, { roll: "102", name: "Bob" }, { roll: "103", name: "Charlie" }];
+    allGroups = {"Project Alpha": [{ roll: "101", name: "Alice" }]};
+    saveToStorage();
+  }
+  loadFromStorage();
+  renderStudents();
+  renderGroups();
+}
+
+initializeApp();
+</script>
+
+</body>
+</html>
