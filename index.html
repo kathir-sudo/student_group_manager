@@ -16,6 +16,7 @@
       --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       --card-bg: rgba(255, 255, 255, 0.9);
       --text-color: #2c3e50;
+      --text-light: #555;
       --border-color: #e0e0e0;
       --danger-color: #e74c3c;
       --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
@@ -76,45 +77,26 @@
 
     .list-item, .group-member {
       display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 1px solid var(--border-color); padding: 12px 5px; gap: 15px;
+      border-bottom: 1px solid var(--border-color); padding: 12px 10px; gap: 15px;
     }
     .list-item:hover, .group-member:hover { background-color: rgba(106, 17, 203, 0.05); border-radius: 8px; }
     .student-info { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
     .student-info .s-no { font-weight: 600; color: var(--primary-color); min-width: 25px; }
-    
-    /* UPDATED: Compact icon buttons for actions */
     .list-item-actions { display: flex; gap: 8px; }
-    .list-item-actions button {
-        padding: 8px; font-size: 0.9rem; width: 36px; height: 36px;
-        justify-content: center; gap: 0;
+    .list-item-actions button { padding: 6px 10px; font-size: 0.85rem; }
+    .group-member-actions { display: flex; align-items: center; gap: 10px; }
+    .group-member-actions .notes-input {
+        padding: 8px; font-size: 0.9rem; border-radius: 6px;
+        border: 1px solid #ccc; margin: 0; width: 150px;
     }
-    .list-item-actions button .fas { margin: 0; }
-    .list-item-actions button span { display: none; } /* Hide text by default */
 
     .group-card {
       border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 20px;
       margin-top: 20px; background: #fdfdfd; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
-    .group-card-header { position: relative; }
     .group-card-header strong { font-size: 1.2rem; }
     .group-body { padding-top: 10px; border-top: 1px solid #eee; transition: all 0.4s ease-in-out; max-height: 1000px; overflow: hidden; }
     .groupSelectedCount { font-weight: 500; background: #e9ecef; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; margin-left: 15px; }
-
-    /* NEW: Kebab menu and dropdown for group actions */
-    .group-actions-btn { background: none; color: var(--text-color); box-shadow: none; padding: 5px 10px; }
-    .group-actions-dropdown {
-        display: none; position: absolute; right: 0; top: 40px;
-        background: white; border-radius: 8px; box-shadow: var(--shadow);
-        z-index: 10; overflow: hidden; min-width: 180px;
-    }
-    .group-actions-dropdown.show { display: block; }
-    .group-actions-dropdown a {
-        display: flex; align-items: center; gap: 10px; padding: 12px 15px;
-        color: var(--text-color); text-decoration: none; font-size: 0.95rem;
-    }
-    .group-actions-dropdown a:hover { background-color: #f0f0f8; }
-    .group-actions-dropdown a.danger-text { color: var(--danger-color); }
-    .group-actions-dropdown a .fas { width: 20px; text-align: center; }
 
     .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); justify-content: center; align-items: center; backdrop-filter: blur(5px); }
     .modal-content { background: white; padding: 30px; border-radius: var(--border-radius); width: 90%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); position: relative; }
@@ -124,87 +106,99 @@
     .hidden { max-height: 0; padding-top: 0; border-top: none; opacity: 0; visibility: hidden; }
 
     @media (max-width: 768px) {
-        body { padding: 10px; }
-        .container { padding: 15px; }
-        .tab-btn { padding: 10px 15px; font-size: 0.9rem; }
-        .action-bar { margin-bottom: 15px; }
-        /* Show text on main action buttons for clarity on mobile */
-        .action-bar button span { display: inline; }
-        .action-bar button { flex-grow: 1; }
-        .action-bar:has(#groupSelect) { flex-direction: column; align-items: stretch; }
-        .group-card { padding: 15px; }
+      .list-item, .group-member { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
 <body>
 
 <div class="app-wrapper">
+  <!-- Tabs -->
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('students', this)"><i class="fas fa-users"></i><span>Students</span></button>
-    <button class="tab-btn" onclick="showTab('groups', this)"><i class="fas fa-layer-group"></i><span>Groups</span></button>
+    <button class="tab-btn active" onclick="showTab('students', this)"><i class="fas fa-users"></i>Students</button>
+    <button class="tab-btn" onclick="showTab('groups', this)"><i class="fas fa-layer-group"></i>Groups</button>
   </div>
 
+  <!-- Students Tab -->
   <div id="students" class="container active">
     <div class="flex-space" style="margin-bottom: 20px;">
       <h2><i class="fas fa-user-graduate"></i> All Students</h2>
+      <button onclick="toggleCollapse('studentList')" class="secondary"><i class="fas fa-compress-alt"></i> Toggle List</button>
     </div>
     <input type="text" id="searchStudent" placeholder="Search by name or roll number...">
     <div class="action-bar">
         <button onclick="openStudentModal()"><i class="fas fa-user-plus"></i> Add Student</button>
         <button onclick="selectAllStudents(true)" class="secondary"><i class="fas fa-check-square"></i> Select All</button>
         <button onclick="selectAllStudents(false)" class="secondary"><i class="far fa-square"></i> Deselect All</button>
-    </div>
-    <div class="action-bar" style="background: #f0f0ff; padding: 15px; border-radius: 8px;">
-        <span id="selectedCount" style="width: 100%; text-align:center; margin-bottom: 10px;">Selected: 0</span>
-        <select id="groupSelect" style="margin: 0;"></select>
-        <button onclick="assignSelectedToGroup()"><i class="fas fa-user-check"></i> Assign to Group</button>
         <button onclick="exportSelectedStudents()" class="export"><i class="fas fa-file-export"></i> Export Selected</button>
+        <span id="selectedCount">Selected: 0</span>
+    </div>
+    <!-- Student Assignment Controls - MOVED HERE -->
+    <div class="action-bar" style="background: #f0f0ff; padding: 15px; border-radius: 8px;">
+        <select id="groupSelect" style="flex-grow: 1; margin: 0;"></select>
+        <button onclick="assignSelectedToGroup()"><i class="fas fa-user-check"></i> Assign to Group</button>
     </div>
     <div id="studentList"></div>
   </div>
 
+  <!-- Groups Tab -->
   <div id="groups" class="container">
      <div class="flex-space" style="margin-bottom: 20px;">
         <h2><i class="fas fa-folder-open"></i> Manage Groups</h2>
-        <button onclick="toggleAllGroupBodies()" class="secondary"><i class="fas fa-eye"></i> Toggle All</button>
+        <button onclick="toggleAllGroupBodies()" class="secondary"><i class="fas fa-compress-alt"></i> Toggle All Groups</button>
      </div>
      <div class="action-bar">
         <input type="text" id="newGroupName" placeholder="New group name..." style="flex-grow: 1; margin: 0;">
-        <button onclick="createGroup()"><i class="fas fa-plus-circle"></i> Create</button>
+        <button onclick="createGroup()"><i class="fas fa-plus-circle"></i> Create Group</button>
      </div>
     <div id="groupListContainer"></div>
   </div>
+</div>
 
-  <div id="studentModal" class="modal">
+<!-- Add/Edit Student Modal -->
+<div id="studentModal" class="modal">
+  <div class="modal-content">
     <span class="close-btn" onclick="closeStudentModal()">×</span>
-    <div class="modal-content">
-      <h3 id="modalTitle">Add New Student</h3>
-      <input type="hidden" id="editingRoll">
-      <input type="text" id="studentRoll" placeholder="Roll No">
-      <input type="text" id="studentName" placeholder="Full Name">
-      <button onclick="saveStudent()" style="width: 100%; justify-content: center;"><i class="fas fa-save"></i> Save</button>
-    </div>
+    <h3 id="modalTitle">Add New Student</h3>
+    <input type="hidden" id="editingRoll">
+    <input type="text" id="studentRoll" placeholder="Roll No">
+    <input type="text" id="studentName" placeholder="Full Name">
+    <button onclick="saveStudent()" style="width: 100%; justify-content: center;"><i class="fas fa-save"></i> Save Student</button>
   </div>
+</div>
 
 <script>
 let allStudents = [];
 let allGroups = {};
+// NEW: A Set to store selected rolls, persists across searches/re-renders
 let selectedStudentRolls = new Set();
 
 // --- Data Persistence ---
-function saveToStorage() { localStorage.setItem("students", JSON.stringify(allStudents)); localStorage.setItem("groups", JSON.stringify(allGroups)); }
-function loadFromStorage() { allStudents = JSON.parse(localStorage.getItem("students") || "[]"); allGroups = JSON.parse(localStorage.getItem("groups") || "{}"); }
+function saveToStorage() {
+  localStorage.setItem("students", JSON.stringify(allStudents));
+  localStorage.setItem("groups", JSON.stringify(allGroups));
+}
+
+function loadFromStorage() {
+  allStudents = JSON.parse(localStorage.getItem("students") || "[]");
+  allGroups = JSON.parse(localStorage.getItem("groups") || "{}");
+}
 
 // --- Render Functions ---
 function renderStudents() {
   const query = document.getElementById("searchStudent").value.toLowerCase();
-  const filteredStudents = allStudents.filter(s => s.name.toLowerCase().includes(query) || s.roll.toLowerCase().includes(query));
+  const filteredStudents = allStudents.filter(s =>
+    s.name.toLowerCase().includes(query) || s.roll.toLowerCase().includes(query)
+  );
+
   const container = document.getElementById("studentList");
-  
-  if (filteredStudents.length === 0) {
-    container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 20px;">No students found.</p>`;
+  if(filteredStudents.length === 0 && allStudents.length > 0) {
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 20px;">No students match your search.</p>`;
+  } else if (allStudents.length === 0) {
+    container.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 20px;">No students added yet. Click "Add Student" to begin.</p>`;
   } else {
-    // UPDATED: Buttons are icon-only with titles
+    // FIXED: `checked` status is now based on the `selectedStudentRolls` Set
+    // The `onchange` event now calls a handler to update the Set.
     container.innerHTML = filteredStudents.map((s, i) =>
       `<div class="list-item">
         <div class="student-info">
@@ -215,210 +209,300 @@ function renderStudents() {
           <div><strong>${s.roll}</strong> - ${s.name}</div>
         </div>
         <div class="list-item-actions">
-          <button onclick="editStudent('${s.roll}')" title="Edit Student"><i class="fas fa-pencil-alt"></i></button>
-          <button class="danger" onclick="deleteStudent('${s.roll}')" title="Delete Student"><i class="fas fa-trash"></i></button>
+          <button onclick="editStudent('${s.roll}')"><i class="fas fa-pencil-alt"></i></button>
+          <button class="danger" onclick="deleteStudent('${s.roll}')"><i class="fas fa-trash"></i></button>
         </div>
       </div>`
     ).join('');
   }
-  renderGroupSelectOptions();
+  renderGroupSelectOptions(); // Ensure dropdown is always updated
   updateSelectedCount();
 }
 
 function renderGroups() {
   const list = document.getElementById("groupListContainer");
+  list.innerHTML = '';
   const groupKeys = Object.keys(allGroups);
-  
+
   if(groupKeys.length === 0) {
-    list.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 20px;">No groups created yet.</p>`;
-    return;
-  }
-  
-  list.innerHTML = groupKeys.map(group => {
-    const members = allGroups[group];
-    const memberHTML = members.map((m, i) => `
-      <div class="group-member">
-        <div class="student-info">
-          <span class="s-no">${i + 1}.</span>
-          <div><strong>${m.roll}</strong> - ${m.name}</div>
-        </div>
-      </div>`).join('');
-      
-    // UPDATED: Group header uses kebab menu
-    return `
-      <div class="group-card">
-        <div class="group-card-header flex-space">
-          <div>
-            <strong>${group}</strong>
-            <span class="groupSelectedCount">Members: ${members.length}</span>
+     list.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 20px;">No groups created yet. Create one above!</p>`;
+  } else {
+    list.innerHTML = groupKeys.map(group => {
+      const members = allGroups[group];
+      const memberHTML = members.map((m, i) => `
+        <div class="group-member">
+          <div class="student-info">
+              <span class="s-no">${i + 1}.</span>
+              <input type="checkbox" class="groupMemberCheck" data-group="${group}" data-roll="${m.roll}" onchange="updateGroupSelectedCount('${group}')">
+              <div><strong>${m.roll}</strong> - ${m.name}</div>
           </div>
-          <div class="group-actions">
-            <button class="group-actions-btn" onclick="toggleGroupActionsDropdown(event, '${group}')">
-              <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <div class="group-actions-dropdown" id="dropdown-${group}">
-              <a href="#" onclick="toggleGroup('${group}'); return false;"><i class="fas fa-eye"></i> Toggle Members</a>
-              <a href="#" onclick="exportGroup('${group}'); return false;"><i class="fas fa-download"></i> Export Group</a>
-              <a href="#" class="danger-text" onclick="deleteGroup('${group}'); return false;"><i class="fas fa-trash-alt"></i> Delete Group</a>
+          <div class="group-member-actions">
+              <input type="text" class="notes-input" value="${m.notes || ''}" placeholder="Add note..." onchange="updateNote('${group}', '${m.roll}', this.value)">
+              <button class="danger" onclick="removeMember('${group}', '${m.roll}')"><i class="fas fa-user-minus"></i></button>
+          </div>
+        </div>`).join('');
+      
+      return `
+        <div class="group-card">
+          <div class="group-card-header flex-space">
+            <div>
+              <strong>${group}</strong>
+              <span class="groupSelectedCount" id="group-count-${group}">Selected: 0</span>
+            </div>
+            <div class="action-bar" style="margin-bottom:0;">
+              <button onclick="toggleGroup('${group}')" class="secondary" title="Toggle Members"><i class="fas fa-eye"></i></button>
+              <button onclick="selectAllInGroup('${group}', true)" class="secondary" title="Select All"><i class="fas fa-check-square"></i></button>
+              <button onclick="selectAllInGroup('${group}', false)" class="secondary" title="Deselect All"><i class="far fa-square"></i></button>
+              <button onclick="exportGroup('${group}')" class="export" title="Export Group"><i class="fas fa-download"></i></button>
+              <button class="danger" onclick="deleteGroup('${group}')" title="Delete Group"><i class="fas fa-trash-alt"></i></button>
             </div>
           </div>
-        </div>
-        <div class="group-body" id="group-body-${group}">${memberHTML || '<em>No members in this group.</em>'}</div>
-      </div>`;
-  }).join('');
+          <div class="group-body" id="group-body-${group}">${memberHTML || '<em>No members in this group.</em>'}</div>
+        </div>`;
+    }).join('');
+  }
+  groupKeys.forEach(group => updateGroupSelectedCount(group));
+  renderGroupSelectOptions(); // Ensure dropdown is always updated
 }
 
+// NEW: Renders just the group options for the select dropdown.
 function renderGroupSelectOptions() {
-  const select = document.getElementById("groupSelect");
-  select.innerHTML = `<option value="">Select a group...</option>` + Object.keys(allGroups).map(g => `<option value="${g}">${g}</option>`).join('');
+    const select = document.getElementById("groupSelect");
+    const groupKeys = Object.keys(allGroups);
+    select.innerHTML = `<option value="">Select a group to assign...</option>`;
+    if (groupKeys.length > 0) {
+        select.innerHTML += groupKeys.map(group => `<option value="${group}">${group}</option>`).join('');
+    }
 }
 
-// --- Student & Modal Management ---
-function openStudentModal(roll = '', name = '') { /* ... no changes ... */ }
-function closeStudentModal() { /* ... no changes ... */ }
+
+// --- Modal Controls ---
+function openStudentModal(roll = '', name = '') {
+  document.getElementById('studentModal').style.display = 'flex';
+  document.getElementById('modalTitle').textContent = roll ? 'Edit Student' : 'Add New Student';
+  document.getElementById('studentRoll').value = roll;
+  document.getElementById('studentName').value = name;
+  document.getElementById('editingRoll').value = roll;
+  document.getElementById('studentRoll').disabled = !!roll;
+}
+
+function closeStudentModal() {
+  document.getElementById('studentModal').style.display = 'none';
+}
+
+// --- Student Management ---
 function saveStudent() {
+  // ... (no changes needed in this function)
   const roll = document.getElementById('studentRoll').value.trim();
   const name = document.getElementById('studentName').value.trim();
   const editingRoll = document.getElementById('editingRoll').value;
-  if (!roll || !name) return alert("Please fill both fields.");
+  if (!roll || !name) return alert("Please enter both Roll Number and Name.");
   if (editingRoll) {
     const student = allStudents.find(s => s.roll === editingRoll);
-    if(student) student.name = name;
-    Object.values(allGroups).forEach(g => {
-        const member = g.find(m => m.roll === editingRoll);
-        if(member) member.name = name;
-    });
+    if (student) student.name = name;
+    for (let groupName in allGroups) {
+      const member = allGroups[groupName].find(m => m.roll === editingRoll);
+      if (member) member.name = name;
+    }
   } else {
-    if (allStudents.some(s => s.roll === roll)) return alert("Roll number exists!");
+    if (allStudents.some(s => s.roll === roll)) return alert("A student with this Roll Number already exists!");
     allStudents.push({ roll, name });
     allStudents.sort((a,b) => a.roll.localeCompare(b.roll));
   }
   saveToStorage(); renderStudents(); renderGroups(); closeStudentModal();
 }
-function editStudent(roll) { /* ... no changes ... */ }
+
+function editStudent(roll) {
+  const s = allStudents.find(st => st.roll === roll);
+  if(s) openStudentModal(s.roll, s.name);
+}
+
 function deleteStudent(roll) {
-  if (!confirm(`Delete student ${roll}?`)) return;
+  if (!confirm(`Delete student ${roll}? This will also remove them from all groups.`)) return;
   allStudents = allStudents.filter(s => s.roll !== roll);
-  selectedStudentRolls.delete(roll);
-  Object.values(allGroups).forEach(g => g = g.filter(m => m.roll !== roll));
+  selectedStudentRolls.delete(roll); // Remove from selection if present
+  for (let groupName in allGroups) {
+    allGroups[groupName] = allGroups[groupName].filter(m => m.roll !== roll);
+  }
   saveToStorage(); renderStudents(); renderGroups();
 }
 
 document.getElementById("searchStudent").addEventListener("input", renderStudents);
 
-// --- Selection Management ---
+// NEW: Handles changes to the main student selection checkboxes
 function handleStudentSelectionChange(roll, isChecked) {
-  if (isChecked) selectedStudentRolls.add(roll); else selectedStudentRolls.delete(roll);
-  updateSelectedCount();
+    if(isChecked) {
+        selectedStudentRolls.add(roll);
+    } else {
+        selectedStudentRolls.delete(roll);
+    }
+    updateSelectedCount();
 }
+
+// FIXED: Select all now adds all *currently visible* students to the selection Set
 function selectAllStudents(select) {
-  const visibleRolls = Array.from(document.querySelectorAll('#studentList .studentCheck'), cb => cb.dataset.roll);
-  if (select) visibleRolls.forEach(roll => selectedStudentRolls.add(roll));
-  else visibleRolls.forEach(roll => selectedStudentRolls.delete(roll));
-  renderStudents();
+  if (select) {
+    document.querySelectorAll('#studentList .studentCheck').forEach(cb => {
+        selectedStudentRolls.add(cb.dataset.roll);
+    });
+  } else {
+    selectedStudentRolls.clear();
+  }
+  renderStudents(); // Re-render to show updated checkbox states
 }
+
+// FIXED: Count is now based on the size of the selection Set
 function updateSelectedCount() {
   document.getElementById("selectedCount").textContent = `Selected: ${selectedStudentRolls.size}`;
 }
+
+// FIXED: Export now uses the `selectedStudentRolls` Set
 function exportSelectedStudents() {
   if (selectedStudentRolls.size === 0) return alert("No students selected.");
-  const text = Array.from(selectedStudentRolls).map(roll => {
-    const s = allStudents.find(s => s.roll === roll);
-    return s ? `${s.roll} - ${s.name}` : '';
+  
+  const selectedText = Array.from(selectedStudentRolls).map(roll => {
+      const s = allStudents.find(s => s.roll === roll);
+      return s ? `${s.roll} - ${s.name}` : '';
   }).join('\n');
-  downloadFile("selected_students.txt", text);
+  
+  downloadFile("selected_students.txt", selectedText);
 }
 
 // --- Group Management ---
 function createGroup() {
+  // ... (no changes needed in this function)
   const nameInput = document.getElementById("newGroupName");
-  if (!nameInput.value.trim()) return alert("Enter group name.");
-  if (allGroups[nameInput.value.trim()]) return alert("Group exists.");
-  allGroups[nameInput.value.trim()] = [];
+  const name = nameInput.value.trim();
+  if (!name) return alert("Please enter a group name.");
+  if (allGroups[name]) return alert("Group already exists.");
+  allGroups[name] = [];
   saveToStorage(); renderGroups(); nameInput.value = "";
 }
 
+// FIXED: Assign now uses the `selectedStudentRolls` Set
 function assignSelectedToGroup() {
   const groupName = document.getElementById("groupSelect").value;
   if (!groupName) return alert("Please select a group.");
-  if (selectedStudentRolls.size === 0) return alert("No students selected.");
+  if (selectedStudentRolls.size === 0) return alert("No students selected to assign.");
+  
   let assignedCount = 0;
-  selectedStudentRolls.forEach(roll => {
+  for (const roll of selectedStudentRolls) {
     if (!allGroups[groupName].some(m => m.roll === roll)) {
       const student = allStudents.find(s => s.roll === roll);
       if (student) {
-        allGroups[groupName].push({ ...student });
+        allGroups[groupName].push({ ...student, notes: '' });
         assignedCount++;
       }
     }
-  });
-  if (assignedCount > 0) {
+  }
+
+  if(assignedCount > 0) {
     allGroups[groupName].sort((a,b) => a.roll.localeCompare(b.roll));
-    saveToStorage(); renderGroups();
+    saveToStorage();
+    renderGroups(); // Re-render groups to show new members
     alert(`${assignedCount} student(s) assigned to "${groupName}".`);
   } else {
-    alert(`Selected student(s) already in "${groupName}".`);
+    alert(`Selected student(s) are already in "${groupName}".`);
   }
+  // Clear selection after assigning
   selectedStudentRolls.clear();
   renderStudents();
 }
+
+function updateNote(groupName, roll, value) {
+  // ... (no changes needed in this function)
+  const member = allGroups[groupName].find(m => m.roll === roll);
+  if (member) member.notes = value;
+  saveToStorage();
+}
+
+function removeMember(groupName, roll) {
+  // ... (no changes needed in this function)
+  if (!confirm(`Remove student ${roll} from "${groupName}"?`)) return;
+  allGroups[groupName] = allGroups[groupName].filter(m => m.roll !== roll);
+  saveToStorage(); renderGroups();
+}
+
 function deleteGroup(groupName) {
-  if (confirm(`Delete group "${groupName}"?`)) {
+  // ... (no changes needed in this function)
+  if (confirm(`Permanently delete the group "${groupName}"?`)) {
     delete allGroups[groupName];
     saveToStorage(); renderGroups();
   }
 }
+
 function exportGroup(groupName) {
-  const members = allGroups[groupName];
-  if (!members || members.length === 0) return alert(`Group "${groupName}" is empty.`);
-  const text = members.map(m => `${m.roll} - ${m.name}`).join('\n');
-  downloadFile(`${groupName}_members.txt`, `Group: ${groupName}\n\n` + text);
+    // ... (no changes needed in this function)
+    const members = allGroups[groupName];
+    if (!members || members.length === 0) return alert(`Group "${groupName}" is empty.`);
+    const header = `Members of Group: ${groupName}\n=========================\n`;
+    const text = members.map(m => `${m.roll} - ${m.name}${m.notes ? ` [Note: ${m.notes}]` : ''}`).join('\n');
+    downloadFile(`${groupName}_members.txt`, header + text);
 }
 
-// --- UI & Utility Functions ---
-function toggleGroup(groupName) { document.getElementById(`group-body-${groupName}`).classList.toggle("hidden"); }
+function selectAllInGroup(groupName, selectState) {
+    // ... (no changes needed in this function)
+    document.querySelectorAll(`.groupMemberCheck[data-group="${groupName}"]`).forEach(cb => cb.checked = selectState);
+    updateGroupSelectedCount(groupName);
+}
+
+function updateGroupSelectedCount(groupName) {
+    // ... (no changes needed in this function)
+    const count = document.querySelectorAll(`.groupMemberCheck[data-group="${groupName}"]:checked`).length;
+    const countEl = document.getElementById(`group-count-${groupName}`);
+    if(countEl) countEl.textContent = `Selected: ${count}`;
+}
+
+function toggleGroup(groupName) {
+    // ... (no changes needed in this function)
+    document.getElementById(`group-body-${groupName}`).classList.toggle("hidden");
+}
+
+// FIXED: Toggles all group bodies at once
 function toggleAllGroupBodies() {
-  const bodies = document.querySelectorAll('.group-body');
-  if (bodies.length === 0) return;
-  const shouldHide = !bodies[0].classList.contains('hidden');
-  bodies.forEach(body => body.classList.toggle('hidden', shouldHide));
+    const bodies = document.querySelectorAll('.group-body');
+    if (bodies.length === 0) return;
+    // Check the state of the first group to decide whether to show or hide all
+    const shouldBeHidden = !bodies[0].classList.contains('hidden');
+    bodies.forEach(body => {
+        body.classList.toggle('hidden', shouldBeHidden);
+    });
 }
-function toggleGroupActionsDropdown(event, groupName) {
-  event.stopPropagation(); // Prevent window.onclick from closing it immediately
-  closeAllDropdowns(groupName); // Close others
-  document.getElementById(`dropdown-${groupName}`).classList.toggle('show');
-}
-function closeAllDropdowns(exceptGroup = null) {
-  document.querySelectorAll('.group-actions-dropdown').forEach(dropdown => {
-    if (!exceptGroup || dropdown.id !== `dropdown-${exceptGroup}`) {
-      dropdown.classList.remove('show');
-    }
-  });
-}
-// NEW: Global click listener to close dropdowns
-window.onclick = function(event) {
-  if (!event.target.matches('.group-actions-btn, .group-actions-btn *')) {
-    closeAllDropdowns();
-  }
-}
+
+
+// --- UI & Utility Functions ---
 function showTab(tabId, element) {
-  document.querySelectorAll(".container").forEach(c => c.classList.remove("active"));
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById(tabId).classList.add("active");
-  element.classList.add("active");
+    // ... (no changes needed in this function)
+    document.querySelectorAll(".container").forEach(c => c.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+    element.classList.add("active");
 }
-function downloadFile(filename, text) { /* ... no changes ... */ }
+
+function toggleCollapse(id) {
+    // ... (no changes needed in this function)
+    document.getElementById(id).classList.toggle("hidden");
+}
+
+function downloadFile(filename, text) {
+    // ... (no changes needed in this function)
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+a.href = url; a.download = filename; document.body.appendChild(a);
+    a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
 
 // --- Initial Load ---
 function initializeApp() {
-  if (!localStorage.getItem("students")) {
-    allStudents = [{ roll: "101", name: "Alice" }, { roll: "102", name: "Bob" }, { roll: "103", name: "Charlie" }];
-    allGroups = {"Project Alpha": [{ roll: "101", name: "Alice" }]};
-    saveToStorage();
-  }
-  loadFromStorage();
-  renderStudents();
-  renderGroups();
+    if (!localStorage.getItem("students")) {
+      allStudents = [{ roll: "101", name: "Alice" }, { roll: "102", name: "Bob" }, { roll: "103", name: "Charlie" }];
+      allGroups = {"Project Alpha": [{ roll: "101", name: "Alice", notes: "Leader" }]};
+      saveToStorage();
+    }
+    loadFromStorage();
+    renderStudents();
+    renderGroups();
 }
 
 initializeApp();
