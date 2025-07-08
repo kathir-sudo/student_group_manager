@@ -18,7 +18,7 @@
     <style>
       :root {
         --primary-color: #6a11cb;
-        --secondary-color: #2575fc;
+        --secondary-color: #7f8c8d;
         --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         --card-bg: rgba(255, 255, 255, 0.95);
         --text-color: #2c3e50;
@@ -29,6 +29,7 @@
         --warning-color: #f39c12;
         --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         --border-radius: 12px;
+        --active-color: #1abc9c;
       }
 
       * {
@@ -45,21 +46,14 @@
         min-height: 100vh;
       }
 
-      /* NEW: Style for individual member checkboxes inside groups */
-      .group-member .groupMemberCheck {
-        transform: scale(1.2); /* Make them 20% larger */
-        position: relative;
-        top: 1px; /* Minor vertical adjustment */
-      }
-
-      /* NEW: Style for individual student checkboxes in the main list */
+      .group-member .groupMemberCheck,
       .list-item .studentCheck {
-        transform: scale(1.2); /* Makes the checkbox 20% larger */
+        transform: scale(1.2);
         position: relative;
-        top: 1px; /* Small vertical adjustment for better alignment */
+        top: 1px;
+        flex-shrink: 0;
       }
 
-      /* Add this new rule to your CSS */
       .action-bar input[type="text"] {
         width: 100%;
       }
@@ -116,7 +110,6 @@
       input[type="number"],
       select,
       textarea {
-        /* width: 100%; */
         padding: 12px;
         margin-bottom: 15px;
         border: 1px solid var(--border-color);
@@ -130,7 +123,7 @@
         background: linear-gradient(
           to right,
           var(--primary-color),
-          var(--secondary-color)
+          #2575fc
         );
         color: white;
         border: none;
@@ -147,18 +140,12 @@
         transform: scale(1.05);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       }
-      button.danger {
-        background: var(--danger-color);
-      }
-      button.secondary {
-        background: #7f8c8d;
-      }
-      button.export {
-        background: #16a085;
-      }
-      button.warning {
-        background: var(--warning-color);
-      }
+      button.danger { background: var(--danger-color); }
+      button.secondary { background: var(--secondary-color); }
+      button.export { background: #16a085; }
+      button.warning { background: var(--warning-color); }
+      button.active { background: var(--active-color); }
+
 
       .action-bar {
         display: flex;
@@ -209,525 +196,293 @@
         align-items: center;
         gap: 15px;
         flex-grow: 1;
+        min-width: 0;
       }
       .student-info .s-no {
         font-weight: 600;
         color: var(--primary-color);
         min-width: 25px;
       }
-      .list-item-actions {
-        display: flex;
-        gap: 8px;
+      .student-name-clickable {
+        cursor: pointer;
+        user-select: none;
+        flex-grow: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-      .list-item-actions button {
-        padding: 6px 10px;
-        font-size: 0.85rem;
-      }
-      .group-member-actions {
+
+      .list-item-actions { display: flex; gap: 8px; }
+      .list-item-actions button { padding: 6px 10px; font-size: 0.85rem; }
+      .group-member-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+      .member-marker { font-size: 1.1rem; margin-left: 8px; }
+      .marker-controls {
         display: flex;
+        gap: 5px;
         align-items: center;
-        gap: 10px;
+        background: #f0f2f5;
+        padding: 4px;
+        border-radius: 8px;
       }
-      .group-member-actions .notes-input {
-        padding: 8px;
-        font-size: 0.9rem;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        margin: 0;
-        width: 180px;
-      ;
+      .marker-btn {
+        background: none; border: 2px solid transparent; color: #333; padding: 0; width: 28px;
+        height: 28px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+        border-radius: 50%; line-height: 1;
       }
+      .marker-btn:hover { transform: scale(1.1); background: #e4e6eb; }
+      .marker-btn.active { border-color: var(--primary-color); background: rgba(106, 17, 203, 0.1); }
+      .marker-btn.clear-marker { color: var(--danger-color); font-size: 1rem; }
 
       .group-card {
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        padding: 20px;
-        margin-top: 20px;
-        background: #fdfdfd;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 20px;
+        margin-top: 20px; background: #fdfdfd; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
       }
-      .group-card-header strong {
-        font-size: 1.2rem;
-      }
-      .group-card-header .member-count {
-        color: var(--text-light);
-        font-weight: 500;
-        margin-left: 8px;
-      }
+      .group-card-header-main { flex-grow: 1; }
+      .group-card-header strong { font-size: 1.2rem; }
+      .group-card-header .member-count { color: var(--text-light); font-weight: 500; margin-left: 8px; }
       .group-body {
-        padding-top: 10px;
-        border-top: 1px solid #eee;
-        transition: all 0.4s ease-in-out;
-        max-height: 500px;
-        overflow-y: auto;
+        padding-top: 10px; border-top: 1px solid #eee; transition: all 0.4s ease-in-out;
+        max-height: 500px; overflow-y: auto;
       }
-      .group-controls {
-        background: #f9f9f9;
-        padding: 10px;
-        border-radius: 8px;
-        align-items: center;
-      }
-      .group-controls .master-check {
-        margin-right: 20px;
-        transform: scale(1.3);
-        cursor: pointer;
-        gap: 10px;
-      }
+      .group-controls { background: #f9f9f9; padding: 10px; border-radius: 8px; align-items: center; }
       .groupSelectedCount {
-        font-weight: 500;
-        background: #e9ecef;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        margin-left: 15px;
+        font-weight: 500; background: #e9ecef; padding: 4px 10px; border-radius: 20px;
+        font-size: 0.85rem; margin-left: 15px;
       }
+      .group-header-actions {
+        display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
+      }
+       .group-header-actions button { padding: 6px 10px; font-size: 0.85rem; }
 
       .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        justify-content: center;
-        align-items: center;
-        backdrop-filter: blur(5px);
+        display: none; position: fixed; z-index: 1000; top: 0; left: 0;
+        width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
+        justify-content: center; align-items: center; backdrop-filter: blur(5px);
       }
       .modal-content {
-        background: white;
-        padding: 30px;
-        border-radius: var(--border-radius);
-        width: 90%;
-        max-width: 500px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        background: white; padding: 30px; border-radius: var(--border-radius);
+        width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         position: relative;
       }
       .close-btn {
-        position: absolute;
-        top: 15px;
-        right: 20px;
-        cursor: pointer;
-        font-size: 28px;
-        color: #999;
+        position: absolute; top: 15px; right: 20px; cursor: pointer;
+        font-size: 28px; color: #999;
       }
 
-      #selectedCount {
-        font-weight: 500;
-        background: #e9ecef;
-        padding: 5px 12px;
-        border-radius: 20px;
-      }
+      #selectedCount { font-weight: 500; background: #e9ecef; padding: 5px 12px; border-radius: 20px; }
       .hidden {
-        max-height: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        margin: 0 !important;
-        opacity: 0;
-        visibility: hidden;
+        max-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; border: none !important;
+        margin-top: 0 !important; opacity: 0; visibility: hidden;
       }
 
       #toast-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 2000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+        position: fixed; bottom: 20px; right: 20px; z-index: 2000;
+        display: flex; flex-direction: column; gap: 10px;
       }
       .toast {
-        padding: 15px 20px;
-        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        padding: 15px 20px; border-radius: 8px; color: white; font-weight: 500;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); opacity: 0;
+        transform: translateY(20px); transition: all 0.4s ease;
+      }
+      .toast.show { opacity: 1; transform: translateY(0); }
+      .toast.success { background-color: var(--success-color); }
+      .toast.danger { background-color: var(--danger-color); }
+      .toast.warning { background-color: var(--warning-color); }
+
+      .toast .undo-btn {
+        background: rgba(255,255,255,0.2);
         color: white;
-        font-weight: 500;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.4s ease;
+        padding: 5px 10px;
+        border-radius: 5px;
+        border: 1px solid rgba(255,255,255,0.5);
+        font-weight: 600;
+        cursor: pointer;
       }
-      .toast.show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      .toast.success {
-        background-color: var(--success-color);
-      }
-      .toast.danger {
-        background-color: var(--danger-color);
-      }
-      .toast.warning {
-        background-color: var(--warning-color);
+      .toast .undo-btn:hover {
+        background: rgba(255,255,255,0.4);
       }
 
       @media (max-width: 768px) {
-        .list-item,
-        .group-member {
-          flex-direction: column;
-          align-items: flex-start;
+        body { padding: 10px; }
+        .container { padding: 15px; }
+        h2 { font-size: 1.5rem; }
+        
+        .action-bar:not(.group-controls):not(.data-bar) > button, .action-bar > span#selectedCount {
+            flex-grow: 1;
+            flex-basis: 40%;
+            justify-content: center;
         }
-      }
 
-      @supports (-webkit-appearance: none) or (-moz-appearance: none) {
-        .master-check[type="checkbox"] {
-          --active: #275efe;
-          --active-inner: #fff;
-          --focus: 2px rgba(39, 94, 254, 0.3);
-          --border: #bbc1e1;
-          --border-hover: #275efe;
-          --background: #fff;
-          --disabled: #f6f8ff;
-          --disabled-inner: #e1e6f9;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          height: 21px;
-          outline: none;
-          display: inline-block;
-          vertical-align: top;
-          position: relative;
-          margin: 0;
-          cursor: pointer;
-          border: 1px solid var(--bc, var(--border));
-          background: var(--b, var(--background));
-          transition: border-color 0.3s, box-shadow 0.2s;
-          width: 21px;
-          border-radius: 7px;
-        }
-        .master-check[type="checkbox"]:after {
-          content: "";
-          display: block;
-          left: 0;
-          top: 0;
-          position: absolute;
-          transition: transform var(--d-t, 0.3s) var(--d-t-e, ease),
-            opacity var(--d-o, 0.2s);
-          width: 5px;
-          height: 9px;
-          border: 2px solid var(--active-inner);
-          border-top: 0;
-          border-left: 0;
-          left: 7px;
-          top: 4px;
-          transform: rotate(var(--r, 20deg));
-          opacity: var(--o, 0);
-        }
-        .master-check[type="checkbox"]:checked {
-          --b: var(--active);
-          --bc: var(--active);
-          --d-o: 0.3s;
-          --d-t: 0.6s;
-          --d-t-e: cubic-bezier(0.2, 0.85, 0.32, 1.2);
-          --o: 1;
-          --r: 43deg;
-        }
-        .master-check[type="checkbox"]:disabled {
-          --b: var(--disabled);
-          cursor: not-allowed;
-          opacity: 0.9;
-        }
-        .master-check[type="checkbox"]:disabled:checked {
-          --b: var(--disabled-inner);
-          --bc: var(--border);
-        }
-        .master-check[type="checkbox"]:hover:not(:checked):not(:disabled) {
-          --bc: var(--border-hover);
-        }
-        .master-check[type="checkbox"]:focus {
-          box-shadow: 0 0 0 var(--focus);
-        }
+        .list-item, .group-member { flex-direction: column; align-items: flex-start; gap: 10px; }
+        
+        .group-card-header { flex-direction: column; align-items: flex-start; }
+        .group-header-actions { width: 100%; justify-content: flex-start; margin-top: 10px; }
+        .group-header-actions button { flex-grow: 1; justify-content: center; }
+        .group-member-actions { width: 100%; justify-content: space-between; margin-top: 5px; }
+        .marker-controls { flex-grow: 1; justify-content: space-around; }
       }
     </style>
   </head>
   <body>
     <div id="toast-container"></div>
-
     <div class="app-wrapper">
-      <!-- Tabs -->
       <div class="tabs">
-        <button class="tab-btn active" onclick="showTab('students', this)">
-          <i class="fas fa-users"></i>Students
-        </button>
-        <button class="tab-btn" onclick="showTab('groups', this)">
-          <i class="fas fa-layer-group"></i>Groups
-        </button>
-        <button class="tab-btn" onclick="showTab('data', this)">
-          <i class="fas fa-database"></i>Data
-        </button>
+        <button class="tab-btn active" onclick="showTab('students', this)"><i class="fas fa-users"></i>Students</button>
+        <button class="tab-btn" onclick="showTab('groups', this)"><i class="fas fa-layer-group"></i>Groups</button>
       </div>
 
-      <!-- Students Tab -->
       <div id="students" class="container active">
         <div class="flex-space" style="margin-bottom: 20px">
           <h2><i class="fas fa-user-graduate"></i> All Students</h2>
-          <button onclick="toggleCollapse('studentList')" class="secondary">
-            <i class="fas fa-compress-alt"></i> Toggle List
-          </button>
+          <button onclick="toggleCollapse('studentList')" class="secondary"><i class="fas fa-compress-alt"></i> Toggle List</button>
         </div>
-        <div class="action-bar">
-          <input
-            type="text"
-            id="searchStudent"
-            placeholder="Search by name or roll number..."
-          />
-        </div>
-        <div class="action-bar"></div>
-        <div
-          class="action-bar"
-          style="background: #f0f0ff; padding: 15px; border-radius: 8px"
-        >
-          <button onclick="openStudentModal()">
-            <i class="fas fa-user-plus"></i> Add
-          </button>
-          <button onclick="openBulkAddModal()">
-            <i class="fas fa-file-import"></i> Bulk Add
-          </button>
-          <!-- NEW: Randomize Button -->
-          <button onclick="openRandomizeModal()" class="secondary">
-            <i class="fas fa-random"></i> Random
-          </button>
-
-          <button onclick="toggleSelectAllStudents()" class="secondary">
-            <i class="fas fa-check-double"></i> Select All
-          </button>
-          <button onclick="deleteSelectedStudents()" class="danger">
-            <i class="fas fa-trash-alt"></i> Delete
-          </button>
-          <button onclick="exportSelectedStudents()" class="export">
-            <i class="fas fa-file-export"></i> Export
-          </button>
+        
+        <div class="action-bar" style="background: #f0f0ff; padding: 15px; border-radius: 8px">
+          <button onclick="openStudentModal()"><i class="fas fa-user-plus"></i> Add</button>
+          <button onclick="openBulkAddModal()"><i class="fas fa-file-import"></i> Bulk Add</button>
+          <button onclick="openRandomizeModal()" class="secondary"><i class="fas fa-random"></i> Random</button>
+          <button onclick="toggleSelectAllStudents()" class="secondary"><i class="fas fa-check-double"></i> Select All</button>
+          <button onclick="deleteSelectedStudents()" class="danger"><i class="fas fa-trash-alt"></i> Delete</button>
           <span id="selectedCount">Selected: 0</span>
         </div>
-        <div
-          class="action-bar"
-          style="background: #e9e9ff; padding: 15px; border-radius: 8px"
-        >
-          <select id="groupSelect" style="flex-grow: 1; margin: 0"></select>
-          <button onclick="assignSelectedToGroup()">
-            <i class="fas fa-user-check"></i> Assign to Group
-          </button>
+         <div class="action-bar" style="background: #e9e9ff; padding: 15px; border-radius: 8px;">
+            <select id="groupSelect" style="flex-grow: 1; margin: 0;"></select>
+            <button onclick="assignSelectedToGroup()"><i class="fas fa-user-check"></i> Assign to Group</button>
+        </div>
+         <div class="action-bar data-bar" style="background: #f5f5f5; padding: 15px; border-radius: 8px; justify-content: flex-start;">
+            <span style="font-weight: 500; margin-right: 15px;">Data:</span>
+            <button onclick="exportSelectedStudents()" class="export"><i class="fas fa-file-export"></i> Export Selected</button>
+            <button onclick="backupAllData()" class="export"><i class="fas fa-download"></i> Backup All</button>
+            <button onclick="document.getElementById('restore-input').click()" class="warning"><i class="fas fa-upload"></i> Restore</button>
+            <input type="file" id="restore-input" style="display:none" accept=".json" onchange="restoreData(event)">
+        </div>
+        <div class="action-bar">
+            <input type="text" id="searchStudent" placeholder="Search by name or roll number..."/>
         </div>
         <div id="studentList"></div>
       </div>
 
-      <!-- Groups Tab -->
       <div id="groups" class="container">
         <div class="flex-space" style="margin-bottom: 20px">
           <h2><i class="fas fa-folder-open"></i> Manage Groups</h2>
-          <button onclick="toggleAllGroupBodies()" class="secondary">
-            <i class="fas fa-compress-alt"></i> Toggle All Groups
-          </button>
+          <button onclick="toggleAllGroupBodies()" class="secondary"><i class="fas fa-compress-alt"></i> Toggle All Groups</button>
         </div>
         <div class="action-bar">
-          <input
-            type="text"
-            id="newGroupName"
-            placeholder="New group name..."
-            style="flex-grow: 1; margin: 0"
-          />
-          <button onclick="createGroup()">
-            <i class="fas fa-plus-circle"></i> Create Group
-          </button>
+          <input type="text" id="newGroupName" placeholder="New group name..." style="flex-grow: 1; margin: 0"/>
+          <button onclick="createGroup()"><i class="fas fa-plus-circle"></i> Create Group</button>
         </div>
         <div id="groupListContainer"></div>
-      </div>
-
-      <!-- Data Management Tab -->
-      <div id="data" class="container">
-        <h2><i class="fas fa-cogs"></i> Data Management</h2>
-        <p style="margin-bottom: 20px; color: var(--text-light)">
-          Backup all your student and group data to a single file, or restore it
-          from a previously saved backup.
-        </p>
-        <div class="action-bar">
-          <button onclick="backupAllData()" class="export">
-            <i class="fas fa-download"></i> Backup All Data
-          </button>
-          <button
-            onclick="document.getElementById('restore-input').click()"
-            class="warning"
-          >
-            <i class="fas fa-upload"></i> Restore from Backup
-          </button>
-          <input
-            type="file"
-            id="restore-input"
-            style="display: none"
-            accept=".json"
-            onchange="restoreData(event)"
-          />
-        </div>
       </div>
     </div>
 
     <!-- Modals -->
-    <div id="studentModal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn" onclick="closeStudentModal()">×</span>
-        <h3 id="modalTitle">Add New Student</h3>
-        <input type="hidden" id="editingRoll" />
-        <input type="text" id="studentRoll" placeholder="Roll No" />
-        <input type="text" id="studentName" placeholder="Full Name" />
-        <button
-          onclick="saveStudent()"
-          style="width: 100%; justify-content: center"
-        >
-          <i class="fas fa-save"></i> Save Student
-        </button>
-      </div>
-    </div>
-
-    <div id="bulkAddModal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn" onclick="closeBulkAddModal()">×</span>
-        <h3>Bulk Add Students</h3>
-        <p
-          style="
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-bottom: 15px;
-          "
-        >
-          Paste data as a JSON array. Ex:
-          <code>[{ "roll": "101", "name": "Jane" }]</code>
-        </p>
-        <textarea
-          id="bulkStudentData"
-          rows="10"
-          placeholder='[{ "roll": "...", "name": "..." }]'
-          style="font-family: monospace"
-        ></textarea>
-        <button
-          onclick="importBulkStudents()"
-          style="width: 100%; justify-content: center"
-        >
-          <i class="fas fa-check-circle"></i> Import Students
-        </button>
-      </div>
-    </div>
-
-    <!-- NEW: Randomize Groups Modal -->
-    <div id="randomizeModal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn" onclick="closeRandomizeModal()">×</span>
-        <h3><i class="fas fa-random"></i> Generate Random Groups</h3>
-        <div style="margin-bottom: 15px">
-          <label><strong>Method:</strong></label
-          ><br />
-          <input
-            type="radio"
-            id="byNumGroups"
-            name="randomizeMethod"
-            value="numGroups"
-            checked
-            onchange="updateRandomizeLabel()"
-          />
-          <label for="byNumGroups">Number of Groups</label><br />
-          <input
-            type="radio"
-            id="byStudentsPerGroup"
-            name="randomizeMethod"
-            value="studentsPerGroup"
-            onchange="updateRandomizeLabel()"
-          />
-          <label for="byStudentsPerGroup">Students per Group</label>
-        </div>
-        <label id="randomizeValueLabel" for="randomizeValue"
-          >Number of Groups:</label
-        >
-        <input type="number" id="randomizeValue" value="2" min="1" />
-        <div style="margin-bottom: 20px">
-          <input type="checkbox" id="includeAssigned" />
-          <label for="includeAssigned"
-            >Include students already in a group.</label
-          >
-        </div>
-        <button
-          onclick="generateRandomGroups()"
-          style="width: 100%; justify-content: center"
-        >
-          <i class="fas fa-cogs"></i> Generate Groups
-        </button>
-      </div>
-    </div>
+    <div id="studentModal" class="modal"> <div class="modal-content"> <span class="close-btn" onclick="closeStudentModal()">×</span> <h3 id="modalTitle">Add New Student</h3> <input type="hidden" id="editingRoll" /> <input type="text" id="studentRoll" placeholder="Roll No" /> <input type="text" id="studentName" placeholder="Full Name" /> <button onclick="saveStudent()" style="width: 100%; justify-content: center"><i class="fas fa-save"></i> Save Student</button> </div> </div>
+    <div id="bulkAddModal" class="modal"> <div class="modal-content"> <span class="close-btn" onclick="closeBulkAddModal()">×</span> <h3>Bulk Add Students</h3> <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 15px;">Paste data as a JSON array. Ex: <code>[{ "roll": "101", "name": "Jane" }]</code></p> <textarea id="bulkStudentData" rows="10" placeholder='[{ "roll": "...", "name": "..." }]' style="font-family: monospace"></textarea> <button onclick="importBulkStudents()" style="width: 100%; justify-content: center"><i class="fas fa-check-circle"></i> Import Students</button> </div> </div>
+    <div id="randomizeModal" class="modal"> <div class="modal-content"> <span class="close-btn" onclick="closeRandomizeModal()">×</span> <h3><i class="fas fa-random"></i> Generate Random Groups</h3> <div style="margin-bottom: 15px"> <label><strong>Method:</strong></label><br /> <input type="radio" id="byNumGroups" name="randomizeMethod" value="numGroups" checked onchange="updateRandomizeLabel()"/> <label for="byNumGroups">Number of Groups</label><br /> <input type="radio" id="byStudentsPerGroup" name="randomizeMethod" value="studentsPerGroup" onchange="updateRandomizeLabel()"/> <label for="byStudentsPerGroup">Students per Group</label> </div> <label id="randomizeValueLabel" for="randomizeValue">Number of Groups:</label> <input type="number" id="randomizeValue" value="2" min="1" /> <div style="margin-bottom: 20px"> <input type="checkbox" id="includeAssigned" /> <label for="includeAssigned">Include students already in a group.</label> </div> <button onclick="generateRandomGroups()" style="width: 100%; justify-content: center"><i class="fas fa-cogs"></i> Generate Groups</button> </div> </div>
 
     <script>
       let allStudents = [];
       let allGroups = {};
       let selectedStudentRolls = new Set();
+      const MARKER_OPTIONS = ['✅', '❓', '💡', '⚠️'];
+      
+      let undoState = null;
+      let undoTimeout = null;
+      let openGroups = new Set(); // NEW: To track open group bodies
 
-      // --- Toast Notification ---
-      function showToast(message, type = "success") {
+      function clearUndoState() {
+          clearTimeout(undoTimeout);
+          undoState = null;
+      }
+
+      function showToast(message, type = "success", undoCallback = null) {
         const container = document.getElementById("toast-container");
         const toast = document.createElement("div");
         toast.className = `toast ${type}`;
-        toast.textContent = message;
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+        toast.appendChild(messageSpan);
+
+        if (undoCallback) {
+            const undoBtn = document.createElement('button');
+            undoBtn.className = 'undo-btn';
+            undoBtn.textContent = 'Undo';
+            undoBtn.onclick = () => {
+                undoCallback();
+                toast.remove();
+            };
+            toast.appendChild(undoBtn);
+        }
+
         container.appendChild(toast);
         setTimeout(() => toast.classList.add("show"), 10);
+        
+        const duration = undoCallback ? 7000 : 3500;
         setTimeout(() => {
           toast.classList.remove("show");
           toast.addEventListener("transitionend", () => toast.remove());
-        }, 3500);
+        }, duration);
+      }
+      
+      function performUndo() {
+          if (!undoState) return;
+          switch (undoState.type) {
+              case 'students':
+                  allStudents.push(...undoState.data.students);
+                  allStudents.sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true }));
+                  allGroups = undoState.data.groups;
+                  selectedStudentRolls.clear();
+                  break;
+              case 'group':
+                  allGroups[undoState.data.name] = undoState.data.members;
+                  break;
+              case 'members':
+                  const group = allGroups[undoState.data.groupName];
+                  if (group) {
+                      group.push(...undoState.data.members);
+                      group.sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true }));
+                  }
+                  break;
+          }
+          showToast('Action has been undone.', 'success');
+          clearUndoState();
+          refreshAll();
       }
 
-      // --- Data Persistence & Refresh ---
-      function saveToStorage() {
-        localStorage.setItem("students", JSON.stringify(allStudents));
-        localStorage.setItem("groups", JSON.stringify(allGroups));
-      }
-      function loadFromStorage() {
-        allStudents = JSON.parse(localStorage.getItem("students") || "[]");
-        allGroups = JSON.parse(localStorage.getItem("groups") || "{}");
-      }
-      function refreshAll() {
-        saveToStorage();
-        renderStudents();
-        renderGroups();
-      }
+      function saveToStorage() { localStorage.setItem("students", JSON.stringify(allStudents)); localStorage.setItem("groups", JSON.stringify(allGroups)); }
+      function loadFromStorage() { allStudents = JSON.parse(localStorage.getItem("students") || "[]"); allGroups = JSON.parse(localStorage.getItem("groups") || "{}"); Object.values(allGroups).forEach(group => { group.forEach(member => { if (member.marker === undefined) member.marker = ""; }); }); }
+      function refreshAll() { saveToStorage(); renderStudents(); renderGroups(); }
 
-      // --- Render Functions ---
       function renderStudents() {
-        const query = document
-          .getElementById("searchStudent")
-          .value.toLowerCase();
+        const query = document.getElementById("searchStudent").value.toLowerCase();
         const filteredStudents = allStudents.filter(
-          (s) =>
-            s.name.toLowerCase().includes(query) ||
-            s.roll.toLowerCase().includes(query)
+          (s) => s.name.toLowerCase().includes(query) || s.roll.toLowerCase().includes(query)
         );
         const container = document.getElementById("studentList");
 
         if (allStudents.length === 0) {
-          container.innerHTML = `<div class="empty-state"><i class="fas fa-user-graduate"></i>No students yet. Click 'Add Student' to start.</div>`;
+          container.innerHTML = `<div class="empty-state"><i class="fas fa-user-graduate"></i>No students yet. Click 'Add' to start.</div>`;
         } else if (filteredStudents.length === 0) {
           container.innerHTML = `<div class="empty-state"><i class="fas fa-search"></i>No students match your search.</div>`;
         } else {
-          container.innerHTML = filteredStudents
-            .map(
-              (s, i) =>
-                `<div class="list-item">
+          container.innerHTML = filteredStudents.map((s, i) => `
+                <div class="list-item">
                   <div class="student-info">
                     <span class="s-no">${i + 1}.</span>
-                    <input type="checkbox" class="studentCheck" data-roll="${
-                      s.roll
-                    }" onchange="handleStudentSelectionChange('${
-                  s.roll
-                }', this.checked)" ${
-                  selectedStudentRolls.has(s.roll) ? "checked" : ""
-                }>
-                    <div><strong>${s.roll}</strong> - ${s.name}</div>
+                    <input type="checkbox" class="studentCheck" data-roll="${s.roll}" onchange="handleStudentSelectionChange('${s.roll}', this.checked)" ${selectedStudentRolls.has(s.roll) ? "checked" : ""}>
+                    <div class="student-name-clickable" onclick="this.parentElement.querySelector('.studentCheck').click()">
+                        <strong>${s.roll}</strong> - ${s.name}
+                    </div>
                   </div>
                   <div class="list-item-actions">
-                    <button onclick="editStudent('${
-                      s.roll
-                    }')" title="Edit"><i class="fas fa-pencil-alt"></i></button>
-                    <button class="danger" onclick="deleteStudent('${
-                      s.roll
-                    }')" title="Delete"><i class="fas fa-trash"></i></button>
+                    <button onclick="editStudent('${s.roll}')" title="Edit"><i class="fas fa-pencil-alt"></i></button>
                   </div>
                 </div>`
-            )
-            .join("");
+            ).join("");
         }
         renderGroupSelectOptions();
         updateSelectedCount();
@@ -735,668 +490,187 @@
 
       function renderGroups() {
         const list = document.getElementById("groupListContainer");
-        const groupKeys = Object.keys(allGroups);
+        const groupKeys = Object.keys(allGroups).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
         if (groupKeys.length === 0) {
           list.innerHTML = `<div class="empty-state"><i class="fas fa-layer-group"></i>No groups created yet.</div>`;
         } else {
-          list.innerHTML = groupKeys
-            .map((groupName) => {
+          list.innerHTML = groupKeys.map((groupName) => {
               const members = allGroups[groupName];
-              const otherGroupOptions = groupKeys
-                .filter((g) => g !== groupName)
-                .map((g) => `<option value="${g}">${g}</option>`)
-                .join("");
+              const otherGroupOptions = groupKeys.filter((g) => g !== groupName).map((g) => `<option value="${g}">${g}</option>`).join("");
+              const isHidden = !openGroups.has(groupName);
 
-              const memberHTML = members
-                .map(
-                  (m, i) => `
+              const markerButtonsHTML = (member) => MARKER_OPTIONS.map(marker => 
+                `<button class="marker-btn ${member.marker === marker ? 'active' : ''}" title="${marker}" onclick="setMarker('${groupName}', '${member.roll}', '${marker}')">${marker}</button>`
+              ).join('') + `<button class="marker-btn clear-marker" title="Clear Marker" onclick="setMarker('${groupName}', '${member.roll}', '')"><i class="fas fa-times"></i></button>`;
+
+              const memberHTML = members.map((m, i) => `
                 <div class="group-member">
                   <div class="student-info">
                       <span class="s-no">${i + 1}.</span>
-                      <input type="checkbox" class="groupMemberCheck" data-group="${groupName}" data-roll="${
-                    m.roll
-                  }" onchange="updateGroupSelectedCount('${groupName}')">
-                      <div><strong>${m.roll}</strong> - ${m.name}</div>
+                      <input type="checkbox" class="groupMemberCheck" data-group="${groupName}" data-roll="${m.roll}" onchange="handleMemberSelectionChange('${groupName}')">
+                      <div class="student-name-clickable" onclick="this.parentElement.querySelector('.groupMemberCheck').click()">
+                        <strong>${m.roll}</strong> - ${m.name} <span class="member-marker">${m.marker || ''}</span>
+                      </div>
                   </div>
                   <div class="group-member-actions">
-                      <input type="text" class="notes-input" value="${
-                        m.notes || ""
-                      }" placeholder="Add note..." onchange="updateNote('${groupName}', '${
-                    m.roll
-                  }', this.value)">
-                      <button class="danger" onclick="removeMember('${groupName}', '${
-                    m.roll
-                  }')" title="Remove Member"><i class="fas fa-user-minus"></i></button>
+                      <div class="marker-controls">${markerButtonsHTML(m)}</div>
+                      <button class="danger" onclick="removeMember('${groupName}', '${m.roll}')" title="Remove Member"><i class="fas fa-user-minus"></i></button>
                   </div>
                 </div>`
-                )
-                .join("");
+              ).join("");
 
               return `
                 <div class="group-card" id="group-card-${groupName}">
                   <div class="group-card-header flex-space">
-                    <div>
+                    <div class="group-card-header-main">
                       <strong>${groupName}</strong>
-                      <span class="member-count">(${
-                        members.length
-                      } Members)</span>
+                      <span class="member-count">(${members.length} Members)</span>
                       <span class="groupSelectedCount" id="group-count-${groupName}">Selected: 0</span>
                     </div>
-                    <div class="action-bar" style="margin-bottom:0;">
-                      <input type="checkbox" class="master-check" title="Toggle Select All" onchange="toggleSelectAllInGroup('${groupName}', this.checked)">
+                    <div class="group-header-actions">
+                      <button class="secondary" id="select-all-btn-${groupName}" title="Toggle Select All" onclick="toggleSelectAllInGroup('${groupName}', this)"><i class="fas fa-check-double"></i></button>
                       <button onclick="toggleGroupBody('${groupName}')" class="secondary" title="Toggle Members View"><i class="fas fa-eye"></i></button>
+                      <button class="export" onclick="exportGroup('${groupName}')" title="Export Group"><i class="fas fa-file-export"></i></button>
                       <button class="danger" onclick="deleteGroup('${groupName}')" title="Delete Group"><i class="fas fa-trash-alt"></i></button>
                       <button class="danger" onclick="removeSelectedMembers('${groupName}')" title="Remove Selected"><i class="fas fa-user-times"></i></button>
-                      
                     </div>
                   </div>
-                  <div class="group-body" id="group-body-${groupName}">
-
+                  <div class="group-body ${isHidden ? 'hidden' : ''}" id="group-body-${groupName}">
                       <div class="action-bar group-controls">
-                        <select id="move-group-select-${groupName}" style="flex-grow:1; margin:0;" ${
-                otherGroupOptions ? "" : "disabled"
-              }>
+                        <select id="move-group-select-${groupName}" style="flex-grow:1; margin:0;" ${otherGroupOptions ? "" : "disabled"}>
                           <option value="">Move to...</option>
                           ${otherGroupOptions}
                         </select>
-
-                        <button class="warning" onclick="moveSelectedMembers('${groupName}')" title="Move Selected Members" ${
-                otherGroupOptions ? "" : "disabled"
-              }><i class="fas fa-people-arrows"></i></button>
-                        
+                        <button class="warning" onclick="moveSelectedMembers('${groupName}')" title="Move Selected Members" ${otherGroupOptions ? "" : "disabled"}><i class="fas fa-people-arrows"></i></button>
                       </div>
-
-                      <div id="group-members-${groupName}">${
-                memberHTML ||
-                "<div class='empty-state' style='padding:20px'><em>No members in this group.</em></div>"
-              }</div>
+                      <div id="group-members-${groupName}">${memberHTML || "<div class='empty-state' style='padding:20px'><em>No members in this group.</em></div>"}</div>
                   </div>
                 </div>`;
-            })
-            .join("");
+            }).join("");
         }
-        groupKeys.forEach((group) => updateGroupSelectedCount(group));
+        groupKeys.forEach((groupName) => {
+            updateGroupSelectedCount(groupName);
+            updateSelectAllButtonState(groupName);
+        });
         renderGroupSelectOptions();
       }
-
-      function renderGroupSelectOptions() {
-        const select = document.getElementById("groupSelect");
-        select.innerHTML =
-          `<option value="">Select a group to assign...</option>` +
-          Object.keys(allGroups)
-            .map((g) => `<option value="${g}">${g}</option>`)
-            .join("");
-      }
-
-      // --- Modal Controls ---
-      function openModal(id) {
-        document.getElementById(id).style.display = "flex";
-      }
-      function closeModal(id) {
-        document.getElementById(id).style.display = "none";
-      }
-
-      const openStudentModal = (roll = "", name = "") => {
-        openModal("studentModal");
-        document.getElementById("modalTitle").textContent = roll
-          ? "Edit Student"
-          : "Add New Student";
-        document.getElementById("studentRoll").value = roll;
-        document.getElementById("studentName").value = name;
-        document.getElementById("editingRoll").value = roll;
-        document.getElementById("studentRoll").disabled = !!roll;
-      };
-      const closeStudentModal = () => closeModal("studentModal");
-      const openBulkAddModal = () => openModal("bulkAddModal");
-      const closeBulkAddModal = () => {
-        closeModal("bulkAddModal");
-        document.getElementById("bulkStudentData").value = "";
-      };
-      const openRandomizeModal = () => openModal("randomizeModal");
-      const closeRandomizeModal = () => closeModal("randomizeModal");
-
-      // --- Student Management ---
-      function saveStudent() {
-        const roll = document.getElementById("studentRoll").value.trim();
-        const name = document.getElementById("studentName").value.trim();
-        const editingRoll = document.getElementById("editingRoll").value;
-        if (!roll || !name)
-          return showToast("Roll Number and Name are required.", "danger");
-
-        if (editingRoll) {
-          const student = allStudents.find((s) => s.roll === editingRoll);
-          if (student) student.name = name;
-          Object.values(allGroups).forEach((g) => {
-            const m = g.find((m) => m.roll === editingRoll);
-            if (m) m.name = name;
-          });
-          showToast("Student details updated.", "success");
-        } else {
-          if (allStudents.some((s) => s.roll === roll))
-            return showToast(
-              "Student with this Roll Number already exists.",
-              "danger"
-            );
-          allStudents.push({ roll, name });
-          allStudents.sort((a, b) =>
-            a.roll.localeCompare(b.roll, undefined, { numeric: true })
-          );
-          showToast("Student added successfully.", "success");
-        }
-        refreshAll();
-        closeStudentModal();
-      }
-
-      function importBulkStudents() {
-        const data = document.getElementById("bulkStudentData").value.trim();
-        if (!data) return showToast("Textarea is empty.", "warning");
-        try {
-          const newStudents = JSON.parse(data);
-          if (!Array.isArray(newStudents))
-            throw new Error("Input must be a JSON array.");
-          let added = 0,
-            skipped = 0,
-            invalid = 0;
-          newStudents.forEach((s) => {
-            if (
-              s &&
-              s.roll &&
-              s.name &&
-              typeof s.roll === "string" &&
-              typeof s.name === "string"
-            ) {
-              if (!allStudents.some((es) => es.roll === s.roll.trim())) {
-                allStudents.push({ roll: s.roll.trim(), name: s.name.trim() });
-                added++;
-              } else {
-                skipped++;
-              }
-            } else {
-              invalid++;
-            }
-          });
-          if (added > 0)
-            allStudents.sort((a, b) =>
-              a.roll.localeCompare(b.roll, undefined, { numeric: true })
-            );
-          refreshAll();
-          showToast(
-            `Imported: ${added}, Skipped (duplicates): ${skipped}, Invalid: ${invalid}.`,
-            "success"
-          );
-          closeBulkAddModal();
-        } catch (error) {
-          showToast(`Invalid JSON: ${error.message}`, "danger");
-        }
-      }
-
-      function editStudent(roll) {
-        const s = allStudents.find((st) => st.roll === roll);
-        if (s) openStudentModal(s.roll, s.name);
-      }
-
-      function deleteStudent(roll) {
-        if (
-          !confirm(
-            `Delete student ${roll}? This removes them from all groups permanently.`
-          )
-        )
-          return;
-        allStudents = allStudents.filter((s) => s.roll !== roll);
-        selectedStudentRolls.delete(roll);
-        Object.keys(allGroups).forEach((g) => {
-          allGroups[g] = allGroups[g].filter((m) => m.roll !== roll);
-        });
-        refreshAll();
-        showToast(`Student ${roll} deleted.`, "success");
-      }
-
+      
       function deleteSelectedStudents() {
-        if (selectedStudentRolls.size === 0)
-          return showToast("No students selected.", "warning");
-        if (
-          !confirm(
-            `Permanently delete ${selectedStudentRolls.size} student(s)? This cannot be undone.`
-          )
-        )
-          return;
-        allStudents = allStudents.filter(
-          (s) => !selectedStudentRolls.has(s.roll)
-        );
-        Object.keys(allGroups).forEach((g) => {
-          allGroups[g] = allGroups[g].filter(
-            (m) => !selectedStudentRolls.has(m.roll)
-          );
-        });
+        if (selectedStudentRolls.size === 0) return showToast("No students selected.", "warning");
+        if (!confirm(`Permanently delete ${selectedStudentRolls.size} student(s)? This action can be undone for 7 seconds.`)) return;
+        clearUndoState();
+        const studentsToDelete = allStudents.filter(s => selectedStudentRolls.has(s.roll));
+        undoState = { type: 'students', data: { students: studentsToDelete, groups: JSON.parse(JSON.stringify(allGroups)) } };
         const count = selectedStudentRolls.size;
+        allStudents = allStudents.filter(s => !selectedStudentRolls.has(s.roll));
+        Object.keys(allGroups).forEach((g) => { allGroups[g] = allGroups[g].filter((m) => !selectedStudentRolls.has(m.roll)); });
         selectedStudentRolls.clear();
         refreshAll();
-        showToast(`${count} student(s) deleted.`, "success");
-      }
-
-      document
-        .getElementById("searchStudent")
-        .addEventListener("input", renderStudents);
-      function handleStudentSelectionChange(roll, isChecked) {
-        if (isChecked) selectedStudentRolls.add(roll);
-        else selectedStudentRolls.delete(roll);
-        updateSelectedCount();
-      }
-
-      function toggleSelectAllStudents() {
-        const visibleRolls = Array.from(
-          document.querySelectorAll("#studentList .studentCheck")
-        ).map((cb) => cb.dataset.roll);
-        if (visibleRolls.length === 0) return;
-        const allVisibleSelected = visibleRolls.every((roll) =>
-          selectedStudentRolls.has(roll)
-        );
-        visibleRolls.forEach((roll) =>
-          allVisibleSelected
-            ? selectedStudentRolls.delete(roll)
-            : selectedStudentRolls.add(roll)
-        );
-        renderStudents();
-      }
-
-      function updateSelectedCount() {
-        document.getElementById(
-          "selectedCount"
-        ).textContent = `Selected: ${selectedStudentRolls.size}`;
-      }
-
-      function exportSelectedStudents() {
-        if (selectedStudentRolls.size === 0)
-          return showToast("No students selected.", "warning");
-        const text = Array.from(selectedStudentRolls)
-          .map((roll) => {
-            const s = allStudents.find((s) => s.roll === roll);
-            return s ? `${s.roll} - ${s.name}` : "";
-          })
-          .join("\n");
-        downloadFile("selected_students.txt", text);
-      }
-
-      // --- Group Management ---
-      function createGroup() {
-        const name = document.getElementById("newGroupName").value.trim();
-        if (!name) return showToast("Please enter a group name.", "danger");
-        if (allGroups[name])
-          return showToast("Group with this name already exists.", "danger");
-        allGroups[name] = [];
-        refreshAll();
-        showToast(`Group "${name}" created.`, "success");
-        document.getElementById("newGroupName").value = "";
-      }
-
-      function assignSelectedToGroup() {
-        const groupName = document.getElementById("groupSelect").value;
-        if (!groupName) return showToast("Please select a group.", "warning");
-        if (selectedStudentRolls.size === 0)
-          return showToast("No students selected.", "warning");
-        let assigned = 0;
-        selectedStudentRolls.forEach((roll) => {
-          if (!allGroups[groupName].some((m) => m.roll === roll)) {
-            const s = allStudents.find((s) => s.roll === roll);
-            if (s) {
-              allGroups[groupName].push({ ...s, notes: "" });
-              assigned++;
-            }
-          }
-        });
-        if (assigned > 0) {
-          allGroups[groupName].sort((a, b) =>
-            a.roll.localeCompare(b.roll, undefined, { numeric: true })
-          );
-          showToast(
-            `${assigned} student(s) assigned to "${groupName}".`,
-            "success"
-          );
-        } else {
-          showToast(`Selected students already in "${groupName}".`, "warning");
-        }
-        selectedStudentRolls.clear();
-        refreshAll();
-      }
-
-      function updateNote(groupName, roll, value) {
-        const member = allGroups[groupName].find((m) => m.roll === roll);
-        if (member) member.notes = value;
-        saveToStorage();
-        showToast("Note saved.", "success");
+        showToast(`${count} student(s) deleted.`, "success", performUndo);
+        undoTimeout = setTimeout(clearUndoState, 7000);
       }
 
       function removeMember(groupName, roll) {
-        if (!confirm(`Remove student ${roll} from "${groupName}"?`)) return;
-        allGroups[groupName] = allGroups[groupName].filter(
-          (m) => m.roll !== roll
-        );
-        refreshAll();
-        showToast(`Removed student from "${groupName}".`, "success");
+        if (!confirm(`Remove student ${roll} from "${groupName}"? This can be undone for 7 seconds.`)) return;
+        clearUndoState();
+        const memberToRemove = allGroups[groupName].find(m => m.roll === roll);
+        if (memberToRemove) {
+            undoState = { type: 'members', data: { groupName: groupName, members: [memberToRemove] } };
+            allGroups[groupName] = allGroups[groupName].filter(m => m.roll !== roll);
+            refreshAll();
+            showToast(`Removed student from "${groupName}".`, "success", performUndo);
+            undoTimeout = setTimeout(clearUndoState, 7000);
+        }
       }
 
       function removeSelectedMembers(groupName) {
-        const rolls = Array.from(
-          document.querySelectorAll(
-            `.groupMemberCheck[data-group="${groupName}"]:checked`
-          )
-        ).map((cb) => cb.dataset.roll);
-        if (rolls.length === 0)
-          return showToast("No members selected to remove.", "warning");
-        if (!confirm(`Remove ${rolls.length} member(s) from "${groupName}"?`))
-          return;
-        allGroups[groupName] = allGroups[groupName].filter(
-          (m) => !rolls.includes(m.roll)
-        );
+        const rolls = Array.from(document.querySelectorAll(`.groupMemberCheck[data-group="${groupName}"]:checked`)).map((cb) => cb.dataset.roll);
+        if (rolls.length === 0) return showToast("No members selected to remove.", "warning");
+        if (!confirm(`Remove ${rolls.length} member(s) from "${groupName}"? This can be undone for 7 seconds.`)) return;
+        clearUndoState();
+        const membersToRemove = allGroups[groupName].filter(m => rolls.includes(m.roll));
+        undoState = { type: 'members', data: { groupName: groupName, members: membersToRemove } };
+        allGroups[groupName] = allGroups[groupName].filter(m => !rolls.includes(m.roll));
         refreshAll();
-        showToast(
-          `${rolls.length} member(s) removed from "${groupName}".`,
-          "success"
-        );
-      }
-
-      function moveSelectedMembers(sourceGroupName) {
-        const targetGroupName = document.getElementById(
-          `move-group-select-${sourceGroupName}`
-        ).value;
-        if (!targetGroupName)
-          return showToast("Please select a destination group.", "warning");
-        const rollsToMove = Array.from(
-          document.querySelectorAll(
-            `.groupMemberCheck[data-group="${sourceGroupName}"]:checked`
-          )
-        ).map((cb) => cb.dataset.roll);
-        if (rollsToMove.length === 0)
-          return showToast("No members selected to move.", "warning");
-        let movedCount = 0;
-        rollsToMove.forEach((roll) => {
-          if (!allGroups[targetGroupName].some((m) => m.roll === roll)) {
-            const memberToMove = allGroups[sourceGroupName].find(
-              (m) => m.roll === roll
-            );
-            if (memberToMove) {
-              allGroups[targetGroupName].push(memberToMove);
-              movedCount++;
-            }
-          }
-        });
-        allGroups[sourceGroupName] = allGroups[sourceGroupName].filter(
-          (m) => !rollsToMove.includes(m.roll)
-        );
-        allGroups[targetGroupName].sort((a, b) =>
-          a.roll.localeCompare(b.roll, undefined, { numeric: true })
-        );
-        refreshAll();
-        if (movedCount > 0)
-          showToast(
-            `${movedCount} member(s) moved to "${targetGroupName}".`,
-            "success"
-          );
-        else
-          showToast(
-            "Selected members are already in the target group.",
-            "warning"
-          );
+        showToast(`${rolls.length} member(s) removed from "${groupName}".`, "success", performUndo);
+        undoTimeout = setTimeout(clearUndoState, 7000);
       }
 
       function deleteGroup(groupName) {
-        if (confirm(`Permanently delete the group "${groupName}"?`)) {
-          delete allGroups[groupName];
-          refreshAll();
-          showToast(`Group "${groupName}" deleted.`, "success");
-        }
+        if (!confirm(`Permanently delete the group "${groupName}"? This can be undone for 7 seconds.`)) return;
+        clearUndoState();
+        undoState = { type: 'group', data: { name: groupName, members: [...allGroups[groupName]] } };
+        openGroups.delete(groupName); // Clean up UI state
+        delete allGroups[groupName];
+        refreshAll();
+        showToast(`Group "${groupName}" deleted.`, "success", performUndo);
+        undoTimeout = setTimeout(clearUndoState, 7000);
       }
-      function exportGroup(groupName) {
-        const members = allGroups[groupName];
-        if (!members || members.length === 0)
-          return showToast(`Group "${groupName}" is empty.`, "warning");
-        const text = members
-          .map(
-            (m) =>
-              `${m.roll} - ${m.name}${m.notes ? ` [Note: ${m.notes}]` : ""}`
-          )
-          .join("\n");
-        downloadFile(
-          `${groupName}_members.txt`,
-          `Members of Group: ${groupName}\n=========================\n${text}`
-        );
-      }
-
-      function toggleSelectAllInGroup(groupName, isChecked) {
-        document
-          .querySelectorAll(`.groupMemberCheck[data-group="${groupName}"]`)
-          .forEach((cb) => (cb.checked = isChecked));
-        updateGroupSelectedCount(groupName);
-      }
-
-      function updateGroupSelectedCount(groupName) {
-        const count = document.querySelectorAll(
-          `.groupMemberCheck[data-group="${groupName}"]:checked`
-        ).length;
-        const el = document.getElementById(`group-count-${groupName}`);
-        if (el) el.textContent = `Selected: ${count}`;
-      }
-
+      
       function toggleGroupBody(groupName) {
-        document
-          .getElementById(`group-body-${groupName}`)
-          .classList.toggle("hidden");
+        const body = document.getElementById(`group-body-${groupName}`);
+        if (body.classList.contains('hidden')) {
+            openGroups.add(groupName);
+        } else {
+            openGroups.delete(groupName);
+        }
+        body.classList.toggle('hidden');
       }
+
       function toggleAllGroupBodies() {
-        const bodies = document.querySelectorAll(".group-body");
-        if (bodies.length === 0) return;
-        const shouldHide = !bodies[0].classList.contains("hidden");
-        bodies.forEach((body) => body.classList.toggle("hidden", shouldHide));
-      }
-
-      // --- NEW: Randomizer ---
-      function updateRandomizeLabel() {
-        const method = document.querySelector(
-          'input[name="randomizeMethod"]:checked'
-        ).value;
-        document.getElementById("randomizeValueLabel").textContent =
-          method === "numGroups" ? "Number of Groups:" : "Students per Group:";
-      }
-
-      function generateRandomGroups() {
-        const method = document.querySelector(
-          'input[name="randomizeMethod"]:checked'
-        ).value;
-        const value = parseInt(document.getElementById("randomizeValue").value);
-        const includeAssigned =
-          document.getElementById("includeAssigned").checked;
-        if (!value || value < 1)
-          return showToast(
-            "Please enter a valid number greater than 0.",
-            "danger"
-          );
-
-        let studentPool = [];
-        if (includeAssigned) {
-          studentPool = [...allStudents];
+        const groupKeys = Object.keys(allGroups);
+        if (groupKeys.length === 0) return;
+        // Decide whether to open or close all based on the state of the first group
+        const shouldOpen = !openGroups.has(groupKeys[0]);
+        if (shouldOpen) {
+            groupKeys.forEach(key => openGroups.add(key));
         } else {
-          const assignedRolls = new Set(
-            Object.values(allGroups)
-              .flat()
-              .map((m) => m.roll)
-          );
-          studentPool = allStudents.filter((s) => !assignedRolls.has(s.roll));
+            openGroups.clear();
         }
-
-        if (studentPool.length === 0)
-          return showToast("No available students to randomize.", "warning");
-
-        // Fisher-Yates shuffle
-        for (let i = studentPool.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [studentPool[i], studentPool[j]] = [studentPool[j], studentPool[i]];
-        }
-
-        let groupCounter = 1;
-        while (allGroups[`Random Group ${groupCounter}`]) {
-          groupCounter++;
-        }
-
-        if (method === "numGroups") {
-          if (value > studentPool.length)
-            return showToast(
-              "Number of groups cannot exceed number of available students.",
-              "danger"
-            );
-          for (let i = 0; i < value; i++) {
-            allGroups[`Random Group ${groupCounter + i}`] = [];
-          }
-          studentPool.forEach((student, index) => {
-            allGroups[`Random Group ${groupCounter + (index % value)}`].push({
-              ...student,
-              notes: "",
-            });
-          });
-        } else {
-          // studentsPerGroup
-          for (let i = 0; i < studentPool.length; i += value) {
-            const groupName = `Random Group ${groupCounter++}`;
-            allGroups[groupName] = studentPool
-              .slice(i, i + value)
-              .map((s) => ({ ...s, notes: "" }));
-          }
-        }
-
-        refreshAll();
-        showToast("Random groups generated successfully!", "success");
-        closeRandomizeModal();
+        refreshAll(); // Re-render all groups with the new open/closed state
       }
+      
+      // --- UNCHANGED OR MINOR CHANGE FUNCTIONS ---
+      const unchangedFunctions = {
+          initializeApp: () => { if (!localStorage.getItem("students") && !localStorage.getItem("groups")) { allStudents = [ { roll: "222307663", name: "Abdul Kalam B" }, { roll: "222307664", name: "Ajay D" }, { roll: "222307666", name: "Akash Kumar R" }, { roll: "222307671", name: "Arunachalam E" }, { roll: "222307672", name: "Babu Esvaran C" }, { roll: "222307676", name: "Daniel Raj R" }, { roll: "222307680", name: "Dhanush V" }, { roll: "222307681", name: "Esakkimuthu Sanjay E" }, { roll: "222307682", name: "Gokul Kannan T" }, { roll: "222307685", name: "Hariharan K" }, { roll: "222307686", name: "Ignatious Daniel Raj D" }, { roll: "222307688", name: "Jayan A" }, { roll: "222307689", name: "Jayson R S" }, { roll: "222307693", name: "Kathirvel E" }, { roll: "222307694", name: "Kishore K" }, { roll: "222307695", name: "Kishore Kumar S" }, { roll: "222307697", name: "Manikandan D" }, { roll: "222307698", name: "Manimaran K" }, { roll: "222307700", name: "Mohamed Irfan J" }, { roll: "222307705", name: "Naresh P" }, { roll: "222307706", name: "Neelamegan K" }, { roll: "222307707", name: "Nitheesh Kanna P" }, { roll: "222307708", name: "Palani Bharathi J" }, { roll: "222307711", name: "Rakshith K" }, { roll: "222307712", name: "Roshan A" }, { roll: "222307758", name: "Sai Mukesh B" }, { roll: "222307714", name: "Sameer Ahmed H" }, { roll: "222307715", name: "Sanjay Raj S" }, { roll: "222307716", name: "Sanjay S" }, { roll: "222307720", name: "Shaik Mahaboob Basha" }, { roll: "222307721", name: "Sivanesan S" }, { roll: "222307722", name: "Sri Harish A" }, { roll: "222307724", name: "Surendhar S" }, { roll: "222307727", name: "Venkatesan K" }, { roll: "222307728", name: "Vignesh S" }, { roll: "222307732", name: "Anandhi E" }, { roll: "222307733", name: "Angel Christina J" }, { roll: "222307734", name: "Anusiya E" }, { roll: "222307735", name: "Arthi D" }, { roll: "222307737", name: "Deepshika M A" }, { roll: "222307740", name: "Indhumathi D" }, { roll: "222307741", name: "Jananee R" }, { roll: "222307744", name: "Lingaisha M" }, { roll: "222307750", name: "Rithika V" }, { roll: "222307752", name: "Saroja M" }, { roll: "222307754", name: "Sivaranjini V" }, { roll: "222307756", name: "Vijiayalakshmi S" }, { roll: "222307757", name: "Yamini D" }, ]; allGroups = {}; saveToStorage(); } loadFromStorage(); refreshAll(); },
+          renderGroupSelectOptions: () => { const select = document.getElementById("groupSelect"); select.innerHTML = `<option value="">Select a group to assign...</option>` + Object.keys(allGroups).map((g) => `<option value="${g}">${g}</option>`).join(""); },
+          openModal: (id) => { document.getElementById(id).style.display = "flex"; },
+          closeModal: (id) => { document.getElementById(id).style.display = "none"; },
+          openStudentModal: (roll = "", name = "") => { unchangedFunctions.openModal("studentModal"); document.getElementById("modalTitle").textContent = roll ? "Edit Student" : "Add New Student"; document.getElementById("studentRoll").value = roll; document.getElementById("studentName").value = name; document.getElementById("editingRoll").value = roll; document.getElementById("studentRoll").disabled = !!roll; },
+          closeStudentModal: () => unchangedFunctions.closeModal("studentModal"),
+          openBulkAddModal: () => unchangedFunctions.openModal("bulkAddModal"),
+          closeBulkAddModal: () => { unchangedFunctions.closeModal("bulkAddModal"); document.getElementById("bulkStudentData").value = ""; },
+          openRandomizeModal: () => unchangedFunctions.openModal("randomizeModal"),
+          closeRandomizeModal: () => unchangedFunctions.closeModal("randomizeModal"),
+          saveStudent: () => { const roll = document.getElementById("studentRoll").value.trim(); const name = document.getElementById("studentName").value.trim(); const editingRoll = document.getElementById("editingRoll").value; if (!roll || !name) return showToast("Roll Number and Name are required.", "danger"); if (editingRoll) { const student = allStudents.find((s) => s.roll === editingRoll); if (student) student.name = name; Object.values(allGroups).forEach((g) => { const m = g.find((m) => m.roll === editingRoll); if (m) m.name = name; }); showToast("Student details updated.", "success"); } else { if (allStudents.some((s) => s.roll === roll)) return showToast("Student with this Roll Number already exists.", "danger"); allStudents.push({ roll, name }); allStudents.sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true })); showToast("Student added successfully.", "success"); } refreshAll(); unchangedFunctions.closeStudentModal(); },
+          importBulkStudents: () => { const data = document.getElementById("bulkStudentData").value.trim(); if (!data) return showToast("Textarea is empty.", "warning"); try { const newStudents = JSON.parse(data); if (!Array.isArray(newStudents)) throw new Error("Input must be a JSON array."); let added = 0, skipped = 0, invalid = 0; newStudents.forEach((s) => { if (s && s.roll && s.name && typeof s.roll === "string" && typeof s.name === "string") { if (!allStudents.some((es) => es.roll === s.roll.trim())) { allStudents.push({ roll: s.roll.trim(), name: s.name.trim() }); added++; } else { skipped++; } } else { invalid++; } }); if (added > 0) allStudents.sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true })); refreshAll(); showToast(`Imported: ${added}, Skipped (duplicates): ${skipped}, Invalid: ${invalid}.`, "success"); unchangedFunctions.closeBulkAddModal(); } catch (error) { showToast(`Invalid JSON: ${error.message}`, "danger"); } },
+          editStudent: (roll) => { const s = allStudents.find((st) => st.roll === roll); if (s) unchangedFunctions.openStudentModal(s.roll, s.name); },
+          handleStudentSelectionChange: (roll, isChecked) => { if (isChecked) selectedStudentRolls.add(roll); else selectedStudentRolls.delete(roll); unchangedFunctions.updateSelectedCount(); },
+          toggleSelectAllStudents: () => { const visibleRolls = Array.from(document.querySelectorAll("#studentList .studentCheck")).map((cb) => cb.dataset.roll); if (visibleRolls.length === 0) return; const allVisibleSelected = visibleRolls.every((roll) => selectedStudentRolls.has(roll)); visibleRolls.forEach((roll) => allVisibleSelected ? selectedStudentRolls.delete(roll) : selectedStudentRolls.add(roll)); renderStudents(); },
+          updateSelectedCount: () => { document.getElementById("selectedCount").textContent = `Selected: ${selectedStudentRolls.size}`; },
+          exportSelectedStudents: () => { if (selectedStudentRolls.size === 0) return showToast("No students selected.", "warning"); const text = Array.from(selectedStudentRolls).map((roll) => { const s = allStudents.find((s) => s.roll === roll); return s ? `${s.roll} - ${s.name}` : ""; }).join("\n"); unchangedFunctions.downloadFile("selected_students.txt", text); },
+          createGroup: () => { const name = document.getElementById("newGroupName").value.trim(); if (!name) return showToast("Please enter a group name.", "danger"); if (allGroups[name]) return showToast("Group with this name already exists.", "danger"); allGroups[name] = []; refreshAll(); showToast(`Group "${name}" created.`, "success"); document.getElementById("newGroupName").value = ""; },
+          assignSelectedToGroup: () => { const groupName = document.getElementById("groupSelect").value; if (!groupName) return showToast("Please select a group.", "warning"); if (selectedStudentRolls.size === 0) return showToast("No students selected.", "warning"); let assigned = 0; selectedStudentRolls.forEach((roll) => { if (!allGroups[groupName].some((m) => m.roll === roll)) { const s = allStudents.find((s) => s.roll === roll); if (s) { allGroups[groupName].push({ ...s, marker: "" }); assigned++; } } }); if (assigned > 0) { allGroups[groupName].sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true })); showToast(`${assigned} student(s) assigned to "${groupName}".`, "success"); } else { showToast(`Selected students already in "${groupName}".`, "warning"); } selectedStudentRolls.clear(); refreshAll(); },
+          setMarker: (groupName, roll, marker) => { const member = allGroups[groupName]?.find(m => m.roll === roll); if (member) { member.marker = marker; refreshAll(); showToast("Marker updated.", "success"); } },
+          moveSelectedMembers: (sourceGroupName) => { const targetGroupName = document.getElementById(`move-group-select-${sourceGroupName}`).value; if (!targetGroupName) return showToast("Please select a destination group.", "warning"); const rollsToMove = Array.from(document.querySelectorAll(`.groupMemberCheck[data-group="${sourceGroupName}"]:checked`)).map((cb) => cb.dataset.roll); if (rollsToMove.length === 0) return showToast("No members selected to move.", "warning"); let movedCount = 0; rollsToMove.forEach((roll) => { if (!allGroups[targetGroupName].some((m) => m.roll === roll)) { const memberToMove = allGroups[sourceGroupName].find((m) => m.roll === roll); if (memberToMove) { allGroups[targetGroupName].push(memberToMove); movedCount++; } } }); allGroups[sourceGroupName] = allGroups[sourceGroupName].filter((m) => !rollsToMove.includes(m.roll)); allGroups[targetGroupName].sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true })); refreshAll(); if (movedCount > 0) showToast(`${movedCount} member(s) moved to "${targetGroupName}".`, "success"); else showToast("Selected members are already in the target group.", "warning"); },
+          exportGroup: (groupName) => { const members = allGroups[groupName]; if (!members || members.length === 0) return showToast(`Group "${groupName}" is empty.`, "warning"); const text = members.map((m) => `${m.roll} - ${m.name}${m.marker ? ` [${m.marker}]` : ''}`).join("\n"); unchangedFunctions.downloadFile(`${groupName}_members.txt`, `Members of Group: ${groupName}\n=========================\n${text}`); },
+          updateGroupSelectedCount: (groupName) => { const count = document.querySelectorAll(`.groupMemberCheck[data-group="${groupName}"]:checked`).length; const el = document.getElementById(`group-count-${groupName}`); if (el) el.textContent = `Selected: ${count}`; },
+          updateSelectAllButtonState: (groupName) => { const btn = document.getElementById(`select-all-btn-${groupName}`); if (!btn) return; const allCheckboxes = document.querySelectorAll(`.groupMemberCheck[data-group="${groupName}"]`); const checkedCheckboxes = document.querySelectorAll(`.groupMemberCheck[data-group="${groupName}"]:checked`); btn.classList.toggle('active', allCheckboxes.length > 0 && allCheckboxes.length === checkedCheckboxes.length); },
+          toggleSelectAllInGroup: (groupName, btn) => { const allCheckboxes = document.querySelectorAll(`.groupMemberCheck[data-group="${groupName}"]`); const shouldSelect = !btn.classList.contains('active'); allCheckboxes.forEach((cb) => (cb.checked = shouldSelect)); unchangedFunctions.updateSelectAllButtonState(groupName); unchangedFunctions.updateGroupSelectedCount(groupName); },
+          handleMemberSelectionChange: (groupName) => { unchangedFunctions.updateGroupSelectedCount(groupName); unchangedFunctions.updateSelectAllButtonState(groupName); },
+          updateRandomizeLabel: () => { const method = document.querySelector('input[name="randomizeMethod"]:checked').value; document.getElementById("randomizeValueLabel").textContent = method === "numGroups" ? "Number of Groups:" : "Students per Group:"; },
+          generateRandomGroups: () => { const method = document.querySelector('input[name="randomizeMethod"]:checked').value; const value = parseInt(document.getElementById("randomizeValue").value); const includeAssigned = document.getElementById("includeAssigned").checked; if (!value || value < 1) return showToast("Please enter a valid number greater than 0.", "danger"); let studentPool = []; if (includeAssigned) { studentPool = [...allStudents]; } else { const assignedRolls = new Set(Object.values(allGroups).flat().map((m) => m.roll)); studentPool = allStudents.filter((s) => !assignedRolls.has(s.roll)); } if (studentPool.length === 0) return showToast("No available students to randomize.", "warning"); for (let i = studentPool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [studentPool[i], studentPool[j]] = [studentPool[j], studentPool[i]]; } let groupCounter = 1; while (allGroups[`Random Group ${groupCounter}`]) { groupCounter++; } if (method === "numGroups") { if (value > studentPool.length) return showToast("Number of groups cannot exceed number of available students.","danger"); for (let i = 0; i < value; i++) { allGroups[`Random Group ${groupCounter + i}`] = []; } studentPool.forEach((student, index) => { allGroups[`Random Group ${groupCounter + (index % value)}`].push({ ...student, marker: "" }); }); } else { for (let i = 0; i < studentPool.length; i += value) { const groupName = `Random Group ${groupCounter++}`; allGroups[groupName] = studentPool.slice(i, i + value).map((s) => ({ ...s, marker: "" })); } } refreshAll(); showToast("Random groups generated successfully!", "success"); unchangedFunctions.closeRandomizeModal(); },
+          showTab: (tabId, element) => { document.querySelectorAll(".container, .tab-btn").forEach((el) => el.classList.remove("active")); document.getElementById(tabId).classList.add("active"); element.classList.add("active"); },
+          toggleCollapse: (id) => { document.getElementById(id).classList.toggle("hidden"); },
+          downloadFile: (filename, text) => { const blob = new Blob([text], { type: "text/plain;charset=utf-8" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href); },
+          backupAllData: () => { const data = { students: allStudents, groups: allGroups }; unchangedFunctions.downloadFile(`student_manager_backup_${new Date().toISOString().split("T")[0]}.json`, JSON.stringify(data, null, 2)); showToast("Full data backup created.", "success"); },
+          restoreData: (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const data = JSON.parse(e.target.result); if (data && Array.isArray(data.students) && typeof data.groups === "object") { if (confirm("Restore data? This will overwrite all current students and groups.")) { allStudents = data.students; allGroups = data.groups; selectedStudentRolls.clear(); openGroups.clear(); refreshAll(); showToast("Data restored successfully!", "success"); } } else { throw new Error("Invalid backup file format."); } } catch (error) { showToast(`Restore failed: ${error.message}`, "danger"); } finally { event.target.value = ""; } }; reader.readAsText(file); },
+      };
 
-      // --- UI & Utility Functions ---
-      function showTab(tabId, element) {
-        document
-          .querySelectorAll(".container, .tab-btn")
-          .forEach((el) => el.classList.remove("active"));
-        document.getElementById(tabId).classList.add("active");
-        element.classList.add("active");
-      }
-      function toggleCollapse(id) {
-        document.getElementById(id).classList.toggle("hidden");
-      }
-      function downloadFile(filename, text) {
-        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(a.href);
-      }
-
-      // --- Data Backup and Restore ---
-      function backupAllData() {
-        const data = { students: allStudents, groups: allGroups };
-        downloadFile(
-          `student_manager_backup_${
-            new Date().toISOString().split("T")[0]
-          }.json`,
-          JSON.stringify(data, null, 2)
-        );
-        showToast("Full data backup created.", "success");
-      }
-      function restoreData(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const data = JSON.parse(e.target.result);
-            if (
-              data &&
-              Array.isArray(data.students) &&
-              typeof data.groups === "object"
-            ) {
-              if (
-                confirm(
-                  "Restore data? This will overwrite all current students and groups."
-                )
-              ) {
-                allStudents = data.students;
-                allGroups = data.groups;
-                selectedStudentRolls.clear();
-                refreshAll();
-                showToast("Data restored successfully!", "success");
-              }
-            } else {
-              throw new Error("Invalid backup file format.");
-            }
-          } catch (error) {
-            showToast(`Restore failed: ${error.message}`, "danger");
-          } finally {
-            event.target.value = "";
-          }
-        };
-        reader.readAsText(file);
-      }
-
-      // --- Initial Load ---
-      function initializeApp() {
-        if (
-          !localStorage.getItem("students") &&
-          !localStorage.getItem("groups")
-        ) {
-          allStudents = [
-            { roll: "222307663", name: "Abdul Kalam B" },
-            { roll: "222307664", name: "Ajay D" },
-            { roll: "222307666", name: "Akash Kumar R" },
-            { roll: "222307671", name: "Arunachalam E" },
-            { roll: "222307672", name: "Babu Esvaran C" },
-            { roll: "222307676", name: "Daniel Raj R" },
-            { roll: "222307680", name: "Dhanush V" },
-            { roll: "222307681", name: "Esakkimuthu Sanjay E" },
-            { roll: "222307682", name: "Gokul Kannan T" },
-            { roll: "222307685", name: "Hariharan K" },
-            { roll: "222307686", name: "Ignatious Daniel Raj D" },
-            { roll: "222307688", name: "Jayan A" },
-            { roll: "222307689", name: "Jayson R S" },
-            { roll: "222307693", name: "Kathirvel E" },
-            { roll: "222307694", name: "Kishore K" },
-            { roll: "222307695", name: "Kishore Kumar S" },
-            { roll: "222307697", name: "Manikandan D" },
-            { roll: "222307698", name: "Manimaran K" },
-            { roll: "222307700", name: "Mohamed Irfan J" },
-            { roll: "222307705", name: "Naresh P" },
-            { roll: "222307706", name: "Neelamegan K" },
-            { roll: "222307707", name: "Nitheesh Kanna P" },
-            { roll: "222307708", name: "Palani Bharathi J" },
-            { roll: "222307711", name: "Rakshith K" },
-            { roll: "222307712", name: "Roshan A" },
-            { roll: "222307758", name: "Sai Mukesh B" },
-            { roll: "222307714", name: "Sameer Ahmed H" },
-            { roll: "222307715", name: "Sanjay Raj S" },
-            { roll: "222307716", name: "Sanjay S" },
-            { roll: "222307720", name: "Shaik Mahaboob Basha" },
-            { roll: "222307721", name: "Sivanesan S" },
-            { roll: "222307722", name: "Sri Harish A" },
-            { roll: "222307724", name: "Surendhar S" },
-            { roll: "222307727", name: "Venkatesan K" },
-            { roll: "222307728", name: "Vignesh S" },
-            { roll: "222307732", name: "Anandhi E" },
-            { roll: "222307733", name: "Angel Christina J" },
-            { roll: "222307734", name: "Anusiya E" },
-            { roll: "222307735", name: "Arthi D" },
-            { roll: "222307737", name: "Deepshika M A" },
-            { roll: "222307740", name: "Indhumathi D" },
-            { roll: "222307741", name: "Jananee R" },
-            { roll: "222307744", name: "Lingaisha M" },
-            { roll: "222307750", name: "Rithika V" },
-            { roll: "222307752", name: "Saroja M" },
-            { roll: "222307754", name: "Sivaranjini V" },
-            { roll: "222307756", name: "Vijiayalakshmi S" },
-            { roll: "222307757", name: "Yamini D" },
-          ];
-          allGroups = {};
-          saveToStorage();
-        }
-        loadFromStorage();
-        refreshAll();
-      }
-
+      // Wire up event listeners and initialize
+      document.getElementById("searchStudent").addEventListener("input", renderStudents);
+      for(const func in unchangedFunctions) { window[func] = unchangedFunctions[func]; }
       initializeApp();
     </script>
   </body>
